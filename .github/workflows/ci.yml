@@ -13,12 +13,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17 (Gradle cache)
+      - name: Set up JDK 21 (Gradle cache)
         if: ${{ hashFiles('backend/gradlew') != '' }}
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
           cache: 'gradle'
 
       - name: Build & Test with Gradle (backend)
@@ -27,12 +27,12 @@ jobs:
           chmod +x backend/gradlew
           backend/gradlew build --stacktrace
 
-      - name: Set up JDK 17 (Maven cache)
+      - name: Set up JDK 21 (Maven cache)
         if: ${{ hashFiles('backend/pom.xml') != '' }}
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
           cache: 'maven'
 
       - name: Test with Maven (backend)
