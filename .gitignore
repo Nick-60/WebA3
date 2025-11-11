@@ -1,0 +1,48 @@
+# ===== 通用 =====
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*.swo
+*.orig
+
+# ===== 环境与配置 =====
+.env
+.env.*
+*.local
+
+# ===== Node/前端 =====
+node_modules/
+dist/
+.next/
+.nuxt/
+coverage/
+.cache/
+
+# ===== Java/后端（Maven/Gradle） =====
+target/
+.gradle/
+build/
+out/
+.classpath
+.project
+.settings/
+.factorypath
+.mvn/
+**/.attach_pid*
+
+# 保留 Gradle Wrapper JAR（不忽略）
+!gradle/wrapper/gradle-wrapper.jar
+
+# ===== IDE =====
+.idea/
+*.iml
+.ijwb/
+.vscode/
+.metadata/
+
+# ===== 操作系统 =====
+ehthumbs.db
+Desktop.ini
+
