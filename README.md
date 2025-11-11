@@ -21,7 +21,7 @@
    - Maven：`cd backend && mvn -B spring-boot:run`
 
 ## 技术栈
-- 后端：Java 17+/Spring Boot 3，构建工具 Maven 或 Gradle（后续任务确定选择）
+- 后端：Java 21/Spring Boot 3，构建工具 Maven（已选）
 - 前端：AdminLTE（静态页面），可后续接入构建工具（如 Vite）
 
 ## 目录结构
