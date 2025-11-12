@@ -1,7 +1,13 @@
 # Leave Backend (Spring Boot 3 · Maven · Java 21)
 
 ## 启动步骤
-1. 确认本地 MySQL 已创建库 `leave_mgmt`（可运行：`mysql -uroot -pnick030201 < ../scripts/db/init.sql`）。
+### 方式 A：开发模式（H2，test Profile，无需 MySQL）
+- 打包：`mvn -f backend/pom.xml -DskipTests package`
+- 运行：`mvn -f backend/pom.xml spring-boot:run -Dspring-boot.run.profiles=test`
+- 或 JAR：`java -jar backend/target/leave-backend-0.0.1-SNAPSHOT.jar --spring.profiles.active=test`
+
+### 方式 B：MySQL（prod Profile）
+1. 确认本地或容器中 MySQL 已创建库 `leave_mgmt`（也可用 `docker compose up -d mysql` 启动容器）。
 2. 配置环境变量（可选，或直接使用默认值）：
    - `DB_URL=jdbc:mysql://localhost:3306/leave_mgmt?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC`
    - `DB_USER=root`
@@ -12,8 +18,8 @@
      - 可选：`SMTP_AUTH=true`、`SMTP_STARTTLS=false`、`SMTP_DEBUG=true`
 3. 构建并运行：
    - 构建：`mvn -f backend/pom.xml -DskipTests package`
-   - 运行（开发）：`mvn -f backend/pom.xml spring-boot:run`
-   - 运行（可执行 JAR）：`java -jar backend/target/leave-backend-0.0.1-SNAPSHOT.jar --spring.flyway.enabled=false`
+   - 运行（prod）：`mvn -f backend/pom.xml spring-boot:run -Dspring-boot.run.profiles=prod`
+   - 运行（JAR）：`java -jar backend/target/leave-backend-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod`
 
 ## 健康检查
 - 接口：`GET /api/health`
@@ -29,9 +35,9 @@
 - 文档与工具：Apache POI（Excel/Word），Flyway（可选迁移）
 
 ## Flyway
-- 默认禁用（`spring.flyway.enabled: false`），位置：`classpath:db/migration`（已包含 `V1__init.sql`）。
-- 如需启用迁移：
-  - 修改 `application.yml` 中 `spring.flyway.enabled: true`，或运行时追加 `--spring.flyway.enabled=true`。
+- dev 默认禁用（`application.yml -> spring.flyway.enabled: false`）。
+- prod 启用（`application-prod.yml`），位置：`classpath:db/migration`（已包含 `V1__init.sql`）。
+- H2 测试（`application-test.yml`）使用 `classpath:db/migration_h2`。
 ## 邮件通知（MVP）
 - 事件：提交申请 -> 通知经理；审批通过/驳回 -> 通知员工
 - 配置：见 `docs/mail_config.md`

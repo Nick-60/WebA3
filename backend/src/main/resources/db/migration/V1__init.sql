@@ -1,6 +1,7 @@
--- 复制迁移示例到 resources（Flyway 默认路径）
--- 与仓库根 db/migrations/V1__init.sql 内容一致
+-- Flyway Migration V1: 初始表结构与种子数据（MySQL）
+-- 说明：此文件位于 classpath:db/migration 以便在 prod Profile 下由 Flyway 执行
 
+-- 表：departments
 CREATE TABLE IF NOT EXISTS departments (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(100) NOT NULL,
@@ -10,6 +11,7 @@ CREATE TABLE IF NOT EXISTS departments (
   KEY idx_departments_manager_id (manager_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 表：users
 CREATE TABLE IF NOT EXISTS users (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   username VARCHAR(50) NOT NULL,
@@ -27,6 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 表：leave_requests
 CREATE TABLE IF NOT EXISTS leave_requests (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   employee_id BIGINT UNSIGNED NOT NULL,
@@ -51,6 +54,7 @@ CREATE TABLE IF NOT EXISTS leave_requests (
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 表：audit_logs
 CREATE TABLE IF NOT EXISTS audit_logs (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   entity VARCHAR(50) NOT NULL,
@@ -68,11 +72,13 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 后置外键：departments.manager_id -> users.id
 ALTER TABLE departments
   ADD CONSTRAINT fk_departments_manager FOREIGN KEY (manager_id)
   REFERENCES users(id)
   ON DELETE SET NULL ON UPDATE CASCADE;
 
+-- 种子数据（可选）
 INSERT INTO departments(name) VALUES ('Engineering'),('HR')
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 

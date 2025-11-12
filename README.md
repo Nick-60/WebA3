@@ -13,12 +13,18 @@
 1. 克隆仓库
    - Windows: `git clone https://github.com/Nick-60/WebA3 && cd WebA3 && dir`
    - Linux/macOS: `git clone https://github.com/Nick-60/WebA3 && cd WebA3 && ls -la`
-2. 前端（静态预览，二选一，当前为占位页目录）
-   - 使用 Node：`npx http-server ./frontend -p 5173`（或 `npx serve ./frontend -p 5173`）
-   - 使用 Python：`python -m http.server 5173 -d frontend`
-3. 后端（当初始化完成后，二选一）
-   - Gradle：`cd backend && ./gradlew bootRun`（Windows: `gradlew.bat bootRun`）
-   - Maven：`cd backend && mvn -B spring-boot:run`
+2. 后端（Maven · Java 21）
+   - 开发（H2，test Profile）：
+     - 打包：`mvn -q -f backend/pom.xml -DskipTests package`
+     - 运行：`mvn -q -f backend/pom.xml spring-boot:run -Dspring-boot.run.profiles=test`
+     - 或：`java -jar backend/target/*.jar --spring.profiles.active=test`
+   - 生产（MySQL，prod Profile）：
+     - 使用 Docker Compose：`docker compose up -d --build`
+     - 或本地 MySQL：设置 `DB_URL/DB_USER/DB_PASSWORD` 后运行 `mvn spring-boot:run`
+3. 前端（静态页面）
+   - 推荐在 VS Code 安装 Live Server 插件后，右键 `frontend/login.html` → `Open with Live Server`。
+   - 或使用 Node：`npx http-server ./frontend -p 5173`（或 `npx serve ./frontend -p 5173`）。
+   - 默认前端将调用 `http://localhost:8080` 的后端接口（见 `frontend/js/config.js`）。
 
 ## 技术栈
 - 后端：Java 21/Spring Boot 3，构建工具 Maven（已选）
@@ -73,6 +79,41 @@ scripts/     # 辅助脚本（启动、工具、CI 本地验证）
 - 能看到 `backend/`、`frontend/`、`docs/`、`scripts/` 目录与本 README。
 
 ---
+
+## 在 VS Code 启动项目（详细指南）
+
+### 先决条件
+- 安装 VS Code、Java 21（Temurin 推荐）、Maven 3.9+、Docker（可选）
+- VS Code 插件：Extension Pack for Java（包含 Debugger for Java）、Spring Boot Tools（可选）、Live Server（前端预览）
+
+### 启动后端（两种方式）
+- 方式 A：开发模式（H2 内存库）
+  - 在 VS Code 终端执行：`mvn -q -f backend/pom.xml spring-boot:run -Dspring-boot.run.profiles=test`
+  - 或使用“运行与调试”面板，在主类 `LeaveBackendApplication` 上点击“运行”，并在 `args` 中加入 `--spring.profiles.active=test`。
+  - 说明：`application-test.yml` 已配置 H2 与 Flyway（`db/migration_h2`），无需 MySQL 即可运行与验证。
+- 方式 B：生产/集成验证（MySQL）
+  - 执行：`docker compose up -d --build`（启动 `mysql` 与 `backend` 服务，Profile=prod）
+  - 或本地 MySQL：设置环境变量 `DB_URL`、`DB_USER`、`DB_PASSWORD` 后，运行：`mvn -q -f backend/pom.xml spring-boot:run`
+  - 说明：`application-prod.yml` 启用 Flyway（`classpath:db/migration`），后端会初始化表结构与种子数据（emp/mgr/hr）。
+
+### 启动前端（静态页面）
+- VS Code Live Server：打开 `frontend/login.html`，点击右下角“Go Live”（默认端口 5500 或 5173）。
+- Node http-server：`npx http-server ./frontend -p 5173`
+- 浏览器访问：`http://localhost:5173/login.html`（或 Live Server 提供的 URL）。前端 JS 会指向 `http://localhost:8080`；如需修改，请编辑 `frontend/js/config.js`。
+
+### 基本验证
+- 健康检查：`curl http://localhost:8080/api/health`（预期 `{"status":"UP"}`）
+- 登录 API（种子用户，仅 test/prod 已初始化时可用）：
+  - PowerShell：
+    - `Invoke-WebRequest -Uri http://localhost:8080/api/auth/login -Method POST -ContentType 'application/json' -Body '{"username":"emp","password":"emp123"}'`
+  - Bash：
+    - `curl -s -X POST -H 'Content-Type: application/json' -d '{"username":"emp","password":"emp123"}' http://localhost:8080/api/auth/login`
+
+### 常见问题
+- 8080 无法访问：`Test-NetConnection -ComputerName localhost -Port 8080`
+- PowerShell 中 `curl` 与 `Invoke-WebRequest` 别名冲突：使用 `curl.exe` 或显式 `Invoke-WebRequest -Uri ...`
+- 邮件发送失败日志：开发环境可忽略；如需禁用或降噪，设置 `SMTP_*` 或在 `application.yml` 调整日志级别。
+
 
 ## 初次推送与分支创建（命令参考）
 ```bash
