@@ -7,6 +7,9 @@
    - `DB_USER=root`
    - `DB_PASSWORD=nick030201`
    - `JWT_SECRET=change-me-in-prod`
+   - 邮件（SMTP）：
+     - `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD`
+     - 可选：`SMTP_AUTH=true`、`SMTP_STARTTLS=false`、`SMTP_DEBUG=true`
 3. 构建并运行：
    - 构建：`mvn -f backend/pom.xml -DskipTests package`
    - 运行（开发）：`mvn -f backend/pom.xml spring-boot:run`
@@ -29,3 +32,7 @@
 - 默认禁用（`spring.flyway.enabled: false`），位置：`classpath:db/migration`（已包含 `V1__init.sql`）。
 - 如需启用迁移：
   - 修改 `application.yml` 中 `spring.flyway.enabled: true`，或运行时追加 `--spring.flyway.enabled=true`。
+## 邮件通知（MVP）
+- 事件：提交申请 -> 通知经理；审批通过/驳回 -> 通知员工
+- 配置：见 `docs/mail_config.md`
+- 调试：可使用 Mailtrap 或本地 MailHog（`docker run -p 1025:1025 -p 8025:8025 mailhog/mailhog`）

@@ -9,6 +9,7 @@ import com.example.leave.model.UserRole;
 import com.example.leave.repository.LeaveRequestRepository;
 import com.example.leave.repository.AuditLogRepository;
 import com.example.leave.repository.UserRepository;
+import com.example.leave.service.MailService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -26,14 +27,17 @@ public class LeaveService {
     private final LeaveRequestRepository leaveRequestRepository;
     private final AuditLogRepository auditLogRepository;
     private final UserRepository userRepository;
+    private final MailService mailService;
 
     @Autowired
     public LeaveService(LeaveRequestRepository leaveRequestRepository,
                         AuditLogRepository auditLogRepository,
-                        UserRepository userRepository) {
+                        UserRepository userRepository,
+                        MailService mailService) {
         this.leaveRequestRepository = leaveRequestRepository;
         this.auditLogRepository = auditLogRepository;
         this.userRepository = userRepository;
+        this.mailService = mailService;
     }
 
     @Transactional
@@ -74,6 +78,16 @@ public class LeaveService {
         log.setDetails(String.format("{\"employeeId\":%d,\"range\":\"%s~%s\",\"days\":%d}",
                 currentUser.getId(), start, end, daysCount));
         auditLogRepository.save(log);
+
+        // 邮件通知：提交后通知经理
+        userRepository.findManagerByEmployeeId(currentUser.getId()).ifPresent(manager -> {
+            String subject = "请假申请提交通知";
+            String text = String.format(
+                    "员工 %s(%s) 提交了请假申请：%s %s ~ %s，共 %d 天。\n申请ID：%d。",
+                    currentUser.getUsername(), currentUser.getEmail(),
+                    leaveType.name(), start, end, daysCount, saved.getId());
+            mailService.send(manager.getEmail(), subject, text);
+        });
 
         return saved;
     }
@@ -166,6 +180,16 @@ public class LeaveService {
         notify.setDetails(String.format("{\"toUserId\":%d,\"message\":\"Your leave has been approved\"}", saved.getEmployeeId()));
         auditLogRepository.save(notify);
 
+        // 邮件通知：审批通过后通知员工
+        userRepository.findById(saved.getEmployeeId()).ifPresent(emp -> {
+            String subject = "请假审批通过通知";
+            String text = String.format(
+                    "您的请假申请已通过：%s %s ~ %s，共 %s 天。\n审批人：%s，备注：%s。\n申请ID：%d，状态：APPROVED",
+                    lr.getLeaveType().name(), lr.getStartDate(), lr.getEndDate(), lr.getDays(),
+                    manager.getUsername(), comment != null ? comment : "无", saved.getId());
+            mailService.send(emp.getEmail(), subject, text);
+        });
+
         return saved;
     }
 
@@ -199,6 +223,16 @@ public class LeaveService {
         notify.setUserId(manager.getId());
         notify.setDetails(String.format("{\"toUserId\":%d,\"message\":\"Your leave has been rejected\"}", saved.getEmployeeId()));
         auditLogRepository.save(notify);
+
+        // 邮件通知：审批拒绝后通知员工
+        userRepository.findById(saved.getEmployeeId()).ifPresent(emp -> {
+            String subject = "请假审批驳回通知";
+            String text = String.format(
+                    "您的请假申请被驳回：%s %s ~ %s，共 %s 天。\n审批人：%s，备注：%s。\n申请ID：%d，状态：REJECTED",
+                    lr.getLeaveType().name(), lr.getStartDate(), lr.getEndDate(), lr.getDays(),
+                    manager.getUsername(), comment != null ? comment : "无", saved.getId());
+            mailService.send(emp.getEmail(), subject, text);
+        });
 
         return saved;
     }

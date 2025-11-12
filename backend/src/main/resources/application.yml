@@ -16,6 +16,15 @@ spring:
     enabled: false
     locations: classpath:db/migration
     baseline-on-migrate: true
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:1025}
+    username: ${SMTP_USER:${SMTP_USERNAME:}}
+    password: ${SMTP_PASSWORD:${SMTP_PASS:}}
+    properties:
+      mail.smtp.auth: ${SMTP_AUTH:true}
+      mail.smtp.starttls.enable: ${SMTP_STARTTLS:false}
+      mail.debug: ${SMTP_DEBUG:true}
 
 jwt:
   secret: ${JWT_SECRET:change-me-in-prod}
@@ -26,3 +35,4 @@ logging:
     root: INFO
     org.springframework.security: DEBUG
     com.example.leave.security: DEBUG
+    com.example.leave.service.mail: DEBUG
