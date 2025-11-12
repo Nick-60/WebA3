@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:leave_test;MODE=MySQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration_h2
+
+jwt:
+  secret: test-secret-please-change
+  exp-minutes: 120
+
+logging:
+  level:
+    root: WARN
+    org.springframework.security: INFO
+    com.example.leave: INFO
