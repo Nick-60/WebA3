@@ -1,7 +1,6 @@
 package com.example.leave.web;
 
 import com.example.leave.model.User;
-import com.example.leave.model.UserRole;
 import com.example.leave.repository.UserRepository;
 import com.example.leave.security.JwtService;
 import java.util.Map;
@@ -10,7 +9,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -49,4 +47,3 @@ public class AuthController {
         ));
     }
 }
-

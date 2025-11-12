@@ -1,7 +1,6 @@
 package com.example.leave.security;
 
 import com.example.leave.model.User;
-import com.example.leave.model.UserRole;
 import com.example.leave.repository.UserRepository;
 import java.util.List;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -31,4 +30,3 @@ public class CustomUserDetailsService implements UserDetailsService {
         );
     }
 }
-

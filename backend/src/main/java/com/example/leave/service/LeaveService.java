@@ -16,6 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -49,17 +50,18 @@ public class LeaveService {
             throw new IllegalArgumentException("end_date 必须不早于 start_date");
         }
 
+        Long empId = Objects.requireNonNull(currentUser.getId(), "currentUser.id must not be null");
         List<LeaveStatus> activeStatuses = Arrays.asList(LeaveStatus.PENDING, LeaveStatus.APPROVED);
         boolean overlap = leaveRequestRepository
                 .existsByEmployeeIdAndStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                        currentUser.getId(), activeStatuses, end, start);
+                        empId, activeStatuses, end, start);
         if (overlap) {
             throw new IllegalArgumentException("申请日期与未结束的请假记录重叠");
         }
 
         long daysCount = ChronoUnit.DAYS.between(start, end) + 1;
         LeaveRequest lr = new LeaveRequest();
-        lr.setEmployeeId(currentUser.getId());
+        lr.setEmployeeId(empId);
         lr.setLeaveType(leaveType);
         lr.setStartDate(start);
         lr.setEndDate(end);
@@ -74,13 +76,13 @@ public class LeaveService {
         log.setEntity("leave_requests");
         log.setEntityId(saved.getId());
         log.setAction("CREATE");
-        log.setUserId(currentUser.getId());
+        log.setUserId(empId);
         log.setDetails(String.format("{\"employeeId\":%d,\"range\":\"%s~%s\",\"days\":%d}",
                 currentUser.getId(), start, end, daysCount));
         auditLogRepository.save(log);
 
         // 邮件通知：提交后通知经理
-        userRepository.findManagerByEmployeeId(currentUser.getId()).ifPresent(manager -> {
+        userRepository.findManagerByEmployeeId(empId).ifPresent(manager -> {
             String subject = "请假申请提交通知";
             String text = String.format(
                     "员工 %s(%s) 提交了请假申请：%s %s ~ %s，共 %d 天。\n申请ID：%d。",
@@ -97,16 +99,19 @@ public class LeaveService {
         if (ou.isEmpty()) {
             throw new IllegalArgumentException("员工不存在: " + username);
         }
+        Long empId = Objects.requireNonNull(ou.get().getId(), "employeeId must not be null");
         return leaveRequestRepository.findByEmployeeIdOrderByCreatedAtDesc(
-                ou.get().getId(), PageRequest.of(page, size));
+                empId, PageRequest.of(page, size));
     }
 
     @Transactional
     public LeaveRequest cancelLeave(Long id, User currentUser) {
-        LeaveRequest lr = leaveRequestRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("请假记录不存在: " + id));
+        final Long leaveId = Objects.requireNonNull(id, "leave id must not be null");
+        final Long currentId = Objects.requireNonNull(currentUser.getId(), "currentUser.id must not be null");
+        LeaveRequest lr = leaveRequestRepository.findById(leaveId)
+                .orElseThrow(() -> new IllegalArgumentException("请假记录不存在: " + leaveId));
 
-        if (!lr.getEmployeeId().equals(currentUser.getId())) {
+        if (!lr.getEmployeeId().equals(currentId)) {
             throw new SecurityException("无权撤销他人请假记录");
         }
         if (lr.getStatus() != LeaveStatus.PENDING) {
@@ -119,9 +124,9 @@ public class LeaveService {
         log.setEntity("leave_requests");
         log.setEntityId(saved.getId());
         log.setAction("CANCEL");
-        log.setUserId(currentUser.getId());
+        log.setUserId(currentId);
         log.setDetails(String.format("{\"employeeId\":%d,\"leaveId\":%d,\"status\":\"CANCELLED\"}",
-                currentUser.getId(), saved.getId()));
+                currentId, saved.getId()));
         auditLogRepository.save(log);
 
         return saved;
@@ -131,7 +136,8 @@ public class LeaveService {
         if (manager.getRole() == null || manager.getRole() != UserRole.MANAGER) {
             throw new SecurityException("仅经理可查看待审批列表");
         }
-        List<Long> subordinateIds = userRepository.findSubordinateIdsByManagerId(manager.getId());
+        Long managerId = Objects.requireNonNull(manager.getId(), "manager.id must not be null");
+        List<Long> subordinateIds = userRepository.findSubordinateIdsByManagerId(managerId);
         if (subordinateIds == null || subordinateIds.isEmpty()) {
             return Page.empty(PageRequest.of(page, size));
         }
@@ -143,7 +149,8 @@ public class LeaveService {
         if (manager.getRole() == null || manager.getRole() != UserRole.MANAGER) {
             throw new SecurityException("仅经理可审批");
         }
-        List<Long> subordinateIds = userRepository.findSubordinateIdsByManagerId(manager.getId());
+        Long managerId = Objects.requireNonNull(manager.getId(), "manager.id must not be null");
+        List<Long> subordinateIds = userRepository.findSubordinateIdsByManagerId(managerId);
         if (subordinateIds == null || !subordinateIds.contains(employeeId)) {
             throw new SecurityException("无权审批非直属部门员工的请假");
         }
@@ -151,15 +158,17 @@ public class LeaveService {
 
     @Transactional
     public LeaveRequest approveLeave(Long id, String comment, User manager) {
-        LeaveRequest lr = leaveRequestRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("请假记录不存在: " + id));
+        final Long leaveId = Objects.requireNonNull(id, "leave id must not be null");
+        final Long managerId = Objects.requireNonNull(manager.getId(), "manager.id must not be null");
+        LeaveRequest lr = leaveRequestRepository.findById(leaveId)
+                .orElseThrow(() -> new IllegalArgumentException("请假记录不存在: " + leaveId));
         if (lr.getStatus() != LeaveStatus.PENDING) {
             throw new IllegalStateException("仅当状态为 PENDING 时可审批通过");
         }
         ensureManagerPermission(lr.getEmployeeId(), manager);
 
         lr.setStatus(LeaveStatus.APPROVED);
-        lr.setApproverId(manager.getId());
+        lr.setApproverId(managerId);
         lr.setApprovalComment(comment);
         LeaveRequest saved = leaveRequestRepository.save(lr);
 
@@ -167,7 +176,7 @@ public class LeaveService {
         log.setEntity("leave_requests");
         log.setEntityId(saved.getId());
         log.setAction("APPROVE");
-        log.setUserId(manager.getId());
+        log.setUserId(managerId);
         log.setDetails(String.format("{\"employeeId\":%d,\"leaveId\":%d,\"comment\":%s,\"status\":\"APPROVED\"}",
                 saved.getEmployeeId(), saved.getId(), jsonEscape(comment)));
         auditLogRepository.save(log);
@@ -176,7 +185,7 @@ public class LeaveService {
         notify.setEntity("notifications");
         notify.setEntityId(saved.getId());
         notify.setAction("UPDATE");
-        notify.setUserId(manager.getId());
+        notify.setUserId(managerId);
         notify.setDetails(String.format("{\"toUserId\":%d,\"message\":\"Your leave has been approved\"}", saved.getEmployeeId()));
         auditLogRepository.save(notify);
 
@@ -195,15 +204,17 @@ public class LeaveService {
 
     @Transactional
     public LeaveRequest rejectLeave(Long id, String comment, User manager) {
-        LeaveRequest lr = leaveRequestRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("请假记录不存在: " + id));
+        final Long leaveId = Objects.requireNonNull(id, "leave id must not be null");
+        final Long managerId = Objects.requireNonNull(manager.getId(), "manager.id must not be null");
+        LeaveRequest lr = leaveRequestRepository.findById(leaveId)
+                .orElseThrow(() -> new IllegalArgumentException("请假记录不存在: " + leaveId));
         if (lr.getStatus() != LeaveStatus.PENDING) {
             throw new IllegalStateException("仅当状态为 PENDING 时可拒绝");
         }
         ensureManagerPermission(lr.getEmployeeId(), manager);
 
         lr.setStatus(LeaveStatus.REJECTED);
-        lr.setApproverId(manager.getId());
+        lr.setApproverId(managerId);
         lr.setApprovalComment(comment);
         LeaveRequest saved = leaveRequestRepository.save(lr);
 
@@ -211,7 +222,7 @@ public class LeaveService {
         log.setEntity("leave_requests");
         log.setEntityId(saved.getId());
         log.setAction("REJECT");
-        log.setUserId(manager.getId());
+        log.setUserId(managerId);
         log.setDetails(String.format("{\"employeeId\":%d,\"leaveId\":%d,\"comment\":%s,\"status\":\"REJECTED\"}",
                 saved.getEmployeeId(), saved.getId(), jsonEscape(comment)));
         auditLogRepository.save(log);
@@ -220,7 +231,7 @@ public class LeaveService {
         notify.setEntity("notifications");
         notify.setEntityId(saved.getId());
         notify.setAction("UPDATE");
-        notify.setUserId(manager.getId());
+        notify.setUserId(managerId);
         notify.setDetails(String.format("{\"toUserId\":%d,\"message\":\"Your leave has been rejected\"}", saved.getEmployeeId()));
         auditLogRepository.save(notify);
 
