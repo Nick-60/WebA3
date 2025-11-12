@@ -12,11 +12,16 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.List;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
@@ -42,6 +47,7 @@ public class SecurityConfig {
                 .authenticationEntryPoint(authenticationEntryPoint())
                 .accessDeniedHandler(accessDeniedHandler())
             )
+            .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/health", "/api/auth/**").permitAll()
                 // 静态资源与页面允许匿名访问（AdminLTE 静态前端）
@@ -56,6 +62,27 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    // CORS configuration for frontend integration
+    // MVP: allow all origins in testing. In production, replace with explicit domain list
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        // For testing/dev, allow any origin. Do NOT use '*' in production.
+        config.setAllowedOriginPatterns(List.of("*"));
+        // Allowed methods
+        config.setAllowedMethods(List.of("GET", "POST", "PATCH", "OPTIONS"));
+        // Allowed headers
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+        // Expose headers (for file downloads, etc.)
+        config.setExposedHeaders(List.of("Content-Disposition"));
+        // When using '*' origins, credentials must be false
+        config.setAllowCredentials(false);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean
