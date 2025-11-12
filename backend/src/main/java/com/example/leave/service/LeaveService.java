@@ -5,6 +5,7 @@ import com.example.leave.model.LeaveStatus;
 import com.example.leave.model.LeaveType;
 import com.example.leave.model.AuditLog;
 import com.example.leave.model.User;
+import com.example.leave.model.UserRole;
 import com.example.leave.repository.LeaveRequestRepository;
 import com.example.leave.repository.AuditLogRepository;
 import com.example.leave.repository.UserRepository;
@@ -110,5 +111,100 @@ public class LeaveService {
         auditLogRepository.save(log);
 
         return saved;
+    }
+
+    public Page<LeaveRequest> listPendingForManager(User manager, int page, int size) {
+        if (manager.getRole() == null || manager.getRole() != UserRole.MANAGER) {
+            throw new SecurityException("仅经理可查看待审批列表");
+        }
+        List<Long> subordinateIds = userRepository.findSubordinateIdsByManagerId(manager.getId());
+        if (subordinateIds == null || subordinateIds.isEmpty()) {
+            return Page.empty(PageRequest.of(page, size));
+        }
+        return leaveRequestRepository.findByEmployeeIdInAndStatusOrderByCreatedAtDesc(
+                subordinateIds, LeaveStatus.PENDING, PageRequest.of(page, size));
+    }
+
+    private void ensureManagerPermission(Long employeeId, User manager) {
+        if (manager.getRole() == null || manager.getRole() != UserRole.MANAGER) {
+            throw new SecurityException("仅经理可审批");
+        }
+        List<Long> subordinateIds = userRepository.findSubordinateIdsByManagerId(manager.getId());
+        if (subordinateIds == null || !subordinateIds.contains(employeeId)) {
+            throw new SecurityException("无权审批非直属部门员工的请假");
+        }
+    }
+
+    @Transactional
+    public LeaveRequest approveLeave(Long id, String comment, User manager) {
+        LeaveRequest lr = leaveRequestRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("请假记录不存在: " + id));
+        if (lr.getStatus() != LeaveStatus.PENDING) {
+            throw new IllegalStateException("仅当状态为 PENDING 时可审批通过");
+        }
+        ensureManagerPermission(lr.getEmployeeId(), manager);
+
+        lr.setStatus(LeaveStatus.APPROVED);
+        lr.setApproverId(manager.getId());
+        lr.setApprovalComment(comment);
+        LeaveRequest saved = leaveRequestRepository.save(lr);
+
+        AuditLog log = new AuditLog();
+        log.setEntity("leave_requests");
+        log.setEntityId(saved.getId());
+        log.setAction("APPROVE");
+        log.setUserId(manager.getId());
+        log.setDetails(String.format("{\"employeeId\":%d,\"leaveId\":%d,\"comment\":%s,\"status\":\"APPROVED\"}",
+                saved.getEmployeeId(), saved.getId(), jsonEscape(comment)));
+        auditLogRepository.save(log);
+
+        AuditLog notify = new AuditLog();
+        notify.setEntity("notifications");
+        notify.setEntityId(saved.getId());
+        notify.setAction("UPDATE");
+        notify.setUserId(manager.getId());
+        notify.setDetails(String.format("{\"toUserId\":%d,\"message\":\"Your leave has been approved\"}", saved.getEmployeeId()));
+        auditLogRepository.save(notify);
+
+        return saved;
+    }
+
+    @Transactional
+    public LeaveRequest rejectLeave(Long id, String comment, User manager) {
+        LeaveRequest lr = leaveRequestRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("请假记录不存在: " + id));
+        if (lr.getStatus() != LeaveStatus.PENDING) {
+            throw new IllegalStateException("仅当状态为 PENDING 时可拒绝");
+        }
+        ensureManagerPermission(lr.getEmployeeId(), manager);
+
+        lr.setStatus(LeaveStatus.REJECTED);
+        lr.setApproverId(manager.getId());
+        lr.setApprovalComment(comment);
+        LeaveRequest saved = leaveRequestRepository.save(lr);
+
+        AuditLog log = new AuditLog();
+        log.setEntity("leave_requests");
+        log.setEntityId(saved.getId());
+        log.setAction("REJECT");
+        log.setUserId(manager.getId());
+        log.setDetails(String.format("{\"employeeId\":%d,\"leaveId\":%d,\"comment\":%s,\"status\":\"REJECTED\"}",
+                saved.getEmployeeId(), saved.getId(), jsonEscape(comment)));
+        auditLogRepository.save(log);
+
+        AuditLog notify = new AuditLog();
+        notify.setEntity("notifications");
+        notify.setEntityId(saved.getId());
+        notify.setAction("UPDATE");
+        notify.setUserId(manager.getId());
+        notify.setDetails(String.format("{\"toUserId\":%d,\"message\":\"Your leave has been rejected\"}", saved.getEmployeeId()));
+        auditLogRepository.save(notify);
+
+        return saved;
+    }
+
+    private String jsonEscape(String s) {
+        if (s == null) return "null";
+        return '"' + s.replace("\\", "\\\\").replace("\"", "\\\"") + '"';
     }
 }

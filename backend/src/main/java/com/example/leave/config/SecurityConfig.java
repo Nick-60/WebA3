@@ -36,6 +36,7 @@ public class SecurityConfig {
             .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/health", "/api/auth/**").permitAll()
+                .requestMatchers("/api/leave/pending", "/api/leave/*/approve", "/api/leave/*/reject").hasRole("MANAGER")
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())
