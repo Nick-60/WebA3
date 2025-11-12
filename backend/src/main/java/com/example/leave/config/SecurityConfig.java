@@ -44,6 +44,12 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/health", "/api/auth/**").permitAll()
+                // 静态资源与页面允许匿名访问（AdminLTE 静态前端）
+                .requestMatchers(
+                    "/", "/*.html",
+                    "/favicon.ico",
+                    "/css/**", "/js/**", "/assets/**", "/images/**", "/webjars/**"
+                ).permitAll()
                 .requestMatchers("/api/leave/pending", "/api/leave/*/approve", "/api/leave/*/reject").hasRole("MANAGER")
                 .anyRequest().authenticated()
             )
