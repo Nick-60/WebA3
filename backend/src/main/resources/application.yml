@@ -19,8 +19,10 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET:change-me-in-prod}
+  exp-minutes: ${TOKEN_EXPIRATION_MINUTES:120}
 
 logging:
   level:
     root: INFO
-    org.springframework.security: INFO
+    org.springframework.security: DEBUG
+    com.example.leave.security: DEBUG
