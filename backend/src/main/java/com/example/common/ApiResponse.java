@@ -4,6 +4,7 @@ public class ApiResponse<T> {
     private int code;
     private String message;
     private T data;
+    private String errorCode;
 
     public ApiResponse() {}
 
@@ -25,11 +26,18 @@ public class ApiResponse<T> {
         return new ApiResponse<>(code, message, null);
     }
 
+    public static <T> ApiResponse<T> error(int code, String message, String errorCode) {
+        ApiResponse<T> resp = new ApiResponse<>(code, message, null);
+        resp.setErrorCode(errorCode);
+        return resp;
+    }
+
     public int getCode() { return code; }
     public void setCode(int code) { this.code = code; }
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }
     public T getData() { return data; }
     public void setData(T data) { this.data = data; }
+    public String getErrorCode() { return errorCode; }
+    public void setErrorCode(String errorCode) { this.errorCode = errorCode; }
 }
-

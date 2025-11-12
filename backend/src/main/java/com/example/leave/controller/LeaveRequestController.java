@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/leave")
@@ -31,6 +32,7 @@ public class LeaveRequestController {
     }
 
     @PostMapping("/request")
+    @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER')")
     public ResponseEntity<ApiResponse<LeaveRequestDTO>> request(@RequestBody LeaveRequestCreateDTO body,
                                                                 Principal principal) {
         try {
@@ -53,6 +55,7 @@ public class LeaveRequestController {
     }
 
     @GetMapping("/employee/{empId}")
+    @PreAuthorize("hasAnyRole('EMPLOYEE','ADMIN','HR','MANAGER')")
     public ResponseEntity<ApiResponse<PagedData<LeaveRequestDTO>>> list(@PathVariable("empId") String empId,
                                                                         @RequestParam(defaultValue = "0") int page,
                                                                         @RequestParam(defaultValue = "10") int size,
@@ -84,6 +87,7 @@ public class LeaveRequestController {
     }
 
     @PatchMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER')")
     public ResponseEntity<ApiResponse<LeaveRequestDTO>> cancel(@PathVariable("id") Long id,
                                                                Principal principal) {
         try {

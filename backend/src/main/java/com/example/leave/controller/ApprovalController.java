@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/leave")
@@ -28,6 +29,7 @@ public class ApprovalController {
     }
 
     @GetMapping("/pending")
+    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<ApiResponse<PagedData<LeaveRequestDTO>>> pending(@RequestParam(defaultValue = "0") int page,
                                                                            @RequestParam(defaultValue = "10") int size,
                                                                            Principal principal) {
@@ -52,6 +54,7 @@ public class ApprovalController {
     }
 
     @PatchMapping("/{id}/approve")
+    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<ApiResponse<LeaveRequestDTO>> approve(@PathVariable("id") Long id,
                                                                 @RequestBody ApproveRejectRequest body,
                                                                 Principal principal) {
@@ -71,6 +74,7 @@ public class ApprovalController {
     }
 
     @PatchMapping("/{id}/reject")
+    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<ApiResponse<LeaveRequestDTO>> reject(@PathVariable("id") Long id,
                                                                @RequestBody ApproveRejectRequest body,
                                                                Principal principal) {
