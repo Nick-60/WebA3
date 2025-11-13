@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS leave_requests (
   status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
   approver_id BIGINT,
   approval_comment VARCHAR(500),
+  employee_comment VARCHAR(500),
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -66,4 +67,3 @@ ALTER TABLE departments ADD CONSTRAINT IF NOT EXISTS fk_departments_manager FORE
 -- Seed departments; users will be seeded by Test profile initializer
 INSERT INTO departments(name) VALUES ('Engineering');
 INSERT INTO departments(name) VALUES ('HR');
-
