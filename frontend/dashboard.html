@@ -17,7 +17,7 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1>仪表盘</h1>
+        <h1>Dashboard</h1>
           </div>
         </div>
       </div>
@@ -28,38 +28,38 @@
         <div class="row">
           <div class="col-md-6">
             <div class="card u-card u-card-elevated">
-              <div class="card-header"><h3 class="card-title">个人请假</h3></div>
+              <div class="card-header"><h3 class="card-title">My Leave</h3></div>
               <div class="card-body">
                 <ul>
-                  <li><a href="/apply_leave.html">提交请假</a></li>
-                  <li><a href="/employee_requests.html">我的请假记录 <span id="dashMyTotal" class="badge badge-pill badge-secondary ml-1" style="display:none"></span><span id="dashMyPendingDot" class="badge badge-pill badge-danger ml-1" style="display:none">●</span></a></li>
+                  <li><a href="/apply_leave.html">Submit Leave</a></li>
+                  <li><a href="/employee_requests.html">My Leave Requests <span id="dashMyPendingCount" class="badge badge-pill badge-secondary ml-1" style="display:none"></span><span id="dashMyPendingDot" class="badge badge-pill badge-danger ml-1" style="display:none">●</span></a></li>
                 </ul>
               </div>
             </div>
           </div>
 
+          <div class="col-md-6" id="roleToolsCol" style="display:none">
+            <div class="card u-card u-card-elevated" id="cardRole">
+              <div class="card-header"><h3 class="card-title" id="cardRoleTitle">Role Tools</h3></div>
+              <div class="card-body" id="cardRoleBody"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row u-mt-4">
           <div class="col-md-6">
-            <div class="card u-card u-card-elevated" id="cardManager" style="display:none">
-              <div class="card-header"><h3 class="card-title">审批任务</h3></div>
-              <div class="card-body">
-                <ul>
-                  <li><a href="/pending_approvals.html">待审批 <span id="dashPending" class="badge badge-pill badge-danger ml-1" style="display:none"></span></a></li>
-                  <li><a href="/manager_approvals_history.html">已处理审批</a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-6 u-mt-4">
             <div class="card u-card u-card-elevated">
-              <div class="card-header"><h3 class="card-title">个人信息</h3></div>
+              <div class="card-header"><h3 class="card-title">Profile</h3></div>
               <div class="card-body">
-                <p>用户名：<span id="usernameText">-</span></p>
-                <p>角色：<span id="roleText">-</span></p>
-                <p>部门ID：<span id="deptText">-</span></p>
+                <p>Username: <span id="usernameText">-</span></p>
+                <p>Role: <span id="roleText">-</span></p>
+                <p>Department ID: <span id="deptText">-</span></p>
               </div>
             </div>
           </div>
+        </div>
+
+          
         </div>
       </main>
     </section>
@@ -87,8 +87,13 @@
       document.getElementById('usernameText').textContent = profile.username || '-';
       document.getElementById('roleText').textContent = profile.role || '-';
       document.getElementById('deptText').textContent = profile.departmentId != null ? String(profile.departmentId) : '-';
-      if (profile.role === 'MANAGER') {
-        var cm=document.getElementById('cardManager'); if(cm) cm.style.display='block';
+      var roleCol=document.getElementById('roleToolsCol');
+      var body=document.getElementById('cardRoleBody');
+      var title=document.getElementById('cardRoleTitle');
+      if(profile.role==='MANAGER'){
+        if(roleCol && body && title){ roleCol.style.display='block'; title.textContent='Approval Tasks'; body.innerHTML='<ul>\n<li><a href="/pending_approvals.html">Pending Approvals <span id="dashPending" class="badge badge-pill badge-danger ml-1" style="display:none"></span></a></li>\n<li><a href="/manager_approvals_history.html">Approval History</a></li>\n</ul>'; }
+      } else if (profile.role==='HR') {
+        if(roleCol && body && title){ roleCol.style.display='block'; title.textContent='HR Tools'; body.innerHTML='<ul>\n<li><a href="/hr_report.html">Export Reports</a></li>\n</ul>'; }
       }
       if (profile.role === 'MANAGER') {
         try{
@@ -97,8 +102,8 @@
         }catch(e){}
       }
       try{
-        var resp = await listEmployeeLeavesByUsername(profile.username || '',0,10);
-        if(resp && resp.code===0){ var pd=resp.data||{}; var total=pd.totalElements||0; var items=pd.items||[]; var hasP=false; for(var i=0;i<items.length;i++){ if(items[i].status==='PENDING'){ hasP=true; break } } var t=document.getElementById('dashMyTotal'); if(t){ if(total>0){ t.textContent=total; t.style.display='inline-block' } } var d=document.getElementById('dashMyPendingDot'); if(d){ d.style.display = hasP ? 'inline-block' : 'none' } }
+        var resp = await listEmployeeLeavesByUsername(profile.username || '',0,50);
+        if(resp && resp.code===0){ var items=resp.data && resp.data.items ? resp.data.items : []; var pc=0; var hasP=false; for(var i=0;i<items.length;i++){ if(items[i].status==='PENDING'){ pc++; hasP=true } } var c=document.getElementById('dashMyPendingCount'); if(c){ if(pc>0){ c.textContent=pc; c.style.display='inline-block' } else { c.style.display='none' } } try{ var key='LS_MY_PENDING_SEEN_'+(profile.username||''); var seen = window.localStorage.getItem(key)==='true'; var d=document.getElementById('dashMyPendingDot'); if(d){ d.style.display = (pc>0 && !seen) ? 'inline-block' : 'none' } }catch(_){} }
       }catch(e){}
     } catch (err) {
       alert('加载个人信息失败');

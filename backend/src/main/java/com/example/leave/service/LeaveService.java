@@ -44,10 +44,10 @@ public class LeaveService {
     @Transactional
     public LeaveRequest createLeave(User currentUser, LeaveType leaveType, LocalDate start, LocalDate end, String comment) {
         if (start == null || end == null) {
-            throw new IllegalArgumentException("start_date 与 end_date 不能为空");
+            throw new IllegalArgumentException("start_date and end_date must not be null");
         }
         if (end.isBefore(start)) {
-            throw new IllegalArgumentException("end_date 必须不早于 start_date");
+            throw new IllegalArgumentException("end_date must not be earlier than start_date");
         }
 
         Long empId = Objects.requireNonNull(currentUser.getId(), "currentUser.id must not be null");
@@ -56,7 +56,7 @@ public class LeaveService {
                 .existsByEmployeeIdAndStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                         empId, activeStatuses, end, start);
         if (overlap) {
-            throw new IllegalArgumentException("申请日期与未结束的请假记录重叠");
+            throw new IllegalArgumentException("Requested date range overlaps with active leave records");
         }
 
         long daysCount = ChronoUnit.DAYS.between(start, end) + 1;
@@ -67,8 +67,8 @@ public class LeaveService {
         lr.setEndDate(end);
         lr.setDays(BigDecimal.valueOf(daysCount));
         lr.setStatus(LeaveStatus.PENDING);
-        // comment 存到 approvalComment 作为备注字段（表结构无单独 comment 字段）
-        lr.setApprovalComment(comment);
+        // 员工备注存 employeeComment；审批备注在审批阶段写入 approvalComment
+        lr.setEmployeeComment(comment);
 
         LeaveRequest saved = leaveRequestRepository.save(lr);
 
@@ -81,11 +81,11 @@ public class LeaveService {
                 currentUser.getId(), start, end, daysCount));
         auditLogRepository.save(log);
 
-        // 邮件通知：提交后通知经理
+        // Email notification: notify manager after submission
         userRepository.findManagerByEmployeeId(empId).ifPresent(manager -> {
-            String subject = "请假申请提交通知";
+            String subject = "Leave request submitted";
             String text = String.format(
-                    "员工 %s(%s) 提交了请假申请：%s %s ~ %s，共 %d 天。\n申请ID：%d。",
+                    "Employee %s(%s) submitted a leave request: %s %s ~ %s, %d day(s). ID: %d.",
                     currentUser.getUsername(), currentUser.getEmail(),
                     leaveType.name(), start, end, daysCount, saved.getId());
             mailService.send(manager.getEmail(), subject, text);
@@ -109,13 +109,13 @@ public class LeaveService {
         final Long leaveId = Objects.requireNonNull(id, "leave id must not be null");
         final Long currentId = Objects.requireNonNull(currentUser.getId(), "currentUser.id must not be null");
         LeaveRequest lr = leaveRequestRepository.findById(leaveId)
-                .orElseThrow(() -> new IllegalArgumentException("请假记录不存在: " + leaveId));
+                .orElseThrow(() -> new IllegalArgumentException("Leave record not found: " + leaveId));
 
         if (!lr.getEmployeeId().equals(currentId)) {
-            throw new SecurityException("无权撤销他人请假记录");
+            throw new SecurityException("Not authorized to cancel another user's leave record");
         }
         if (lr.getStatus() != LeaveStatus.PENDING) {
-            throw new IllegalStateException("仅当状态为 PENDING 时可撤销");
+            throw new IllegalStateException("Cancellation is only allowed when status is PENDING");
         }
         lr.setStatus(LeaveStatus.CANCELLED);
         LeaveRequest saved = leaveRequestRepository.save(lr);
@@ -134,7 +134,7 @@ public class LeaveService {
 
     public Page<LeaveRequest> listPendingForManager(User manager, int page, int size) {
         if (manager.getRole() == null || manager.getRole() != UserRole.MANAGER) {
-            throw new SecurityException("仅经理可查看待审批列表");
+            throw new SecurityException("Only managers can view pending approvals");
         }
         Long managerId = Objects.requireNonNull(manager.getId(), "manager.id must not be null");
         List<Long> subordinateIds = userRepository.findSubordinateIdsByManagerId(managerId);
@@ -147,7 +147,7 @@ public class LeaveService {
 
     public Page<LeaveRequest> listHandledByManager(User manager, int page, int size) {
         if (manager.getRole() == null || manager.getRole() != UserRole.MANAGER) {
-            throw new SecurityException("仅经理可查看已处理审批历史");
+            throw new SecurityException("Only managers can view approval history");
         }
         Long managerId = Objects.requireNonNull(manager.getId(), "manager.id must not be null");
         List<LeaveStatus> handled = Arrays.asList(LeaveStatus.APPROVED, LeaveStatus.REJECTED);
@@ -157,12 +157,12 @@ public class LeaveService {
 
     private void ensureManagerPermission(Long employeeId, User manager) {
         if (manager.getRole() == null || manager.getRole() != UserRole.MANAGER) {
-            throw new SecurityException("仅经理可审批");
+            throw new SecurityException("Only managers can approve/reject");
         }
         Long managerId = Objects.requireNonNull(manager.getId(), "manager.id must not be null");
         List<Long> subordinateIds = userRepository.findSubordinateIdsByManagerId(managerId);
         if (subordinateIds == null || !subordinateIds.contains(employeeId)) {
-            throw new SecurityException("无权审批非直属部门员工的请假");
+            throw new SecurityException("Not authorized to act on non-subordinate employee leave");
         }
     }
 
@@ -171,9 +171,9 @@ public class LeaveService {
         final Long leaveId = Objects.requireNonNull(id, "leave id must not be null");
         final Long managerId = Objects.requireNonNull(manager.getId(), "manager.id must not be null");
         LeaveRequest lr = leaveRequestRepository.findById(leaveId)
-                .orElseThrow(() -> new IllegalArgumentException("请假记录不存在: " + leaveId));
+                .orElseThrow(() -> new IllegalArgumentException("Leave record not found: " + leaveId));
         if (lr.getStatus() != LeaveStatus.PENDING) {
-            throw new IllegalStateException("仅当状态为 PENDING 时可审批通过");
+            throw new IllegalStateException("Approval is only allowed when status is PENDING");
         }
         ensureManagerPermission(lr.getEmployeeId(), manager);
 
@@ -199,13 +199,13 @@ public class LeaveService {
         notify.setDetails(String.format("{\"toUserId\":%d,\"message\":\"Your leave has been approved\"}", saved.getEmployeeId()));
         auditLogRepository.save(notify);
 
-        // 邮件通知：审批通过后通知员工
+        // Email notification: notify employee after approval
         userRepository.findById(saved.getEmployeeId()).ifPresent(emp -> {
-            String subject = "请假审批通过通知";
+            String subject = "Leave approved";
             String text = String.format(
-                    "您的请假申请已通过：%s %s ~ %s，共 %s 天。\n审批人：%s，备注：%s。\n申请ID：%d，状态：APPROVED",
+                    "Your leave request has been approved: %s %s ~ %s, %s day(s).\nApprover: %s, Comment: %s.\nID: %d, Status: APPROVED",
                     lr.getLeaveType().name(), lr.getStartDate(), lr.getEndDate(), lr.getDays(),
-                    manager.getUsername(), comment != null ? comment : "无", saved.getId());
+                    manager.getUsername(), comment != null ? comment : "none", saved.getId());
             mailService.send(emp.getEmail(), subject, text);
         });
 
@@ -217,9 +217,9 @@ public class LeaveService {
         final Long leaveId = Objects.requireNonNull(id, "leave id must not be null");
         final Long managerId = Objects.requireNonNull(manager.getId(), "manager.id must not be null");
         LeaveRequest lr = leaveRequestRepository.findById(leaveId)
-                .orElseThrow(() -> new IllegalArgumentException("请假记录不存在: " + leaveId));
+                .orElseThrow(() -> new IllegalArgumentException("Leave record not found: " + leaveId));
         if (lr.getStatus() != LeaveStatus.PENDING) {
-            throw new IllegalStateException("仅当状态为 PENDING 时可拒绝");
+            throw new IllegalStateException("Rejection is only allowed when status is PENDING");
         }
         ensureManagerPermission(lr.getEmployeeId(), manager);
 
@@ -245,13 +245,13 @@ public class LeaveService {
         notify.setDetails(String.format("{\"toUserId\":%d,\"message\":\"Your leave has been rejected\"}", saved.getEmployeeId()));
         auditLogRepository.save(notify);
 
-        // 邮件通知：审批拒绝后通知员工
+        // Email notification: notify employee after rejection
         userRepository.findById(saved.getEmployeeId()).ifPresent(emp -> {
-            String subject = "请假审批驳回通知";
+            String subject = "Leave rejected";
             String text = String.format(
-                    "您的请假申请被驳回：%s %s ~ %s，共 %s 天。\n审批人：%s，备注：%s。\n申请ID：%d，状态：REJECTED",
+                    "Your leave request was rejected: %s %s ~ %s, %s day(s).\nApprover: %s, Comment: %s.\nID: %d, Status: REJECTED",
                     lr.getLeaveType().name(), lr.getStartDate(), lr.getEndDate(), lr.getDays(),
-                    manager.getUsername(), comment != null ? comment : "无", saved.getId());
+                    manager.getUsername(), comment != null ? comment : "none", saved.getId());
             mailService.send(emp.getEmail(), subject, text);
         });
 

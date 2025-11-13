@@ -13,7 +13,8 @@ public class LeaveRequestDTO {
     private LocalDate startDate;
     private LocalDate endDate;
     private BigDecimal days;
-    private String comment;
+    private String employeeComment;
+    private String approvalComment;
     private LeaveStatus status;
     private Instant createdAt;
     private Instant updatedAt;
@@ -30,8 +31,10 @@ public class LeaveRequestDTO {
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
     public BigDecimal getDays() { return days; }
     public void setDays(BigDecimal days) { this.days = days; }
-    public String getComment() { return comment; }
-    public void setComment(String comment) { this.comment = comment; }
+    public String getEmployeeComment() { return employeeComment; }
+    public void setEmployeeComment(String employeeComment) { this.employeeComment = employeeComment; }
+    public String getApprovalComment() { return approvalComment; }
+    public void setApprovalComment(String approvalComment) { this.approvalComment = approvalComment; }
     public LeaveStatus getStatus() { return status; }
     public void setStatus(LeaveStatus status) { this.status = status; }
     public Instant getCreatedAt() { return createdAt; }

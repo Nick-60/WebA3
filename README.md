@@ -114,6 +114,14 @@ scripts/     # 辅助脚本（启动、工具、CI 本地验证）
 - 如使用本地 MySQL：设置 `DB_URL` / `DB_USER` / `DB_PASSWORD` 后运行上述命令
 - 验证接口：可通过前端页面登录后触发 API；或直接使用工具（如 curl/Postman）访问后端接口
 
+### 数据库迁移与启动
+
+- 默认开发配置：已禁用迁移（`spring.flyway.enabled=false`），适用于你已手动维护数据库结构的场景；直接 `npm run dev:backend` 即可。
+- 启用迁移（需要自动执行 SQL 时）：将 `application.yml` 改为 `spring.flyway.enabled=true`，并确保已配置 MySQL 适配依赖与兼容脚本。
+- 临时禁用迁移（不改文件）：启动参数 `--spring.flyway.enabled=false` 或环境变量 `SPRING_FLYWAY_ENABLED=false`。
+- 修复校验失败：如遇“Validate failed / failed migration”，先清理半完成变更，再执行修复（repair）以恢复历史记录；或参考迁移校验灵活配置，以忽略特定校验项。
+
+
 ### VS Code 操作建议
 
 - 打开集成终端，分别运行前后端命令（前端：`npm run dev`，后端：`npm run dev:backend`）。

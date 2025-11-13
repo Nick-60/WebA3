@@ -90,7 +90,7 @@ public class SecurityConfig {
         return (request, response, authException) -> {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType("application/json;charset=UTF-8");
-            String body = new ObjectMapper().writeValueAsString(ApiResponse.error(401, "未认证", "UNAUTHORIZED"));
+            String body = new ObjectMapper().writeValueAsString(ApiResponse.error(401, "Unauthorized", "UNAUTHORIZED"));
             response.getWriter().write(body);
         };
     }
@@ -100,7 +100,7 @@ public class SecurityConfig {
         return (request, response, accessDeniedException) -> {
             response.setStatus(HttpStatus.FORBIDDEN.value());
             response.setContentType("application/json;charset=UTF-8");
-            String body = new ObjectMapper().writeValueAsString(ApiResponse.error(403, "无权限", "FORBIDDEN"));
+            String body = new ObjectMapper().writeValueAsString(ApiResponse.error(403, "Forbidden", "FORBIDDEN"));
             response.getWriter().write(body);
         };
     }

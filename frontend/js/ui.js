@@ -19,8 +19,8 @@ function notify(type,msg){
   c.appendChild(el);
   setTimeout(function(){ if(el && el.parentNode){ el.parentNode.removeChild(el) } },3000);
 }
-function showSuccess(msg){ notify('success',msg||'操作成功') }
-function showError(msg){ notify('danger',msg||'发生错误') }
+function showSuccess(msg){ notify('success',msg||'Operation succeeded') }
+function showError(msg){ notify('danger',msg||'An error occurred') }
 function setText(id,text){ var el=document.getElementById(id); if(el) el.textContent=text }
 function byId(id){ return document.getElementById(id) }
 function withButtonLoading(btn,fn){

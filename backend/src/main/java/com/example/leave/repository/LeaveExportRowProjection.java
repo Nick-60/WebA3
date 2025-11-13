@@ -16,6 +16,6 @@ public interface LeaveExportRowProjection {
     BigDecimal getDays();
     String getStatus();
     String getApprover();
+    String getEmployeeComment();
     String getApprovalComment();
 }
-

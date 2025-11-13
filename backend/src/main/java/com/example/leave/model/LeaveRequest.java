@@ -38,6 +38,9 @@ public class LeaveRequest {
     @Column(name = "approval_comment", length = 500)
     private String approvalComment;
 
+    @Column(name = "employee_comment", length = 500)
+    private String employeeComment;
+
     @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
     private Instant createdAt;
 
@@ -71,7 +74,9 @@ public class LeaveRequest {
     public String getApprovalComment() { return approvalComment; }
     public void setApprovalComment(String approvalComment) { this.approvalComment = approvalComment; }
 
+    public String getEmployeeComment() { return employeeComment; }
+    public void setEmployeeComment(String employeeComment) { this.employeeComment = employeeComment; }
+
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }
-

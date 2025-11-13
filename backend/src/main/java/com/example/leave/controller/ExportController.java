@@ -1,6 +1,7 @@
 package com.example.leave.controller;
 
 import com.example.leave.service.ExportService;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+// no StreamingResponseBody to avoid client download issues; return bytes with content-length
 
 @RestController
 @RequestMapping("/api/leave/hr")
@@ -26,22 +27,23 @@ public class ExportController {
 
     @GetMapping(value = "/export")
     @PreAuthorize("hasRole('HR')")
-    public ResponseEntity<StreamingResponseBody> export(@RequestParam(required = false) Long departmentId,
-                                                        @RequestParam LocalDate from,
-                                                        @RequestParam LocalDate to) {
+    public ResponseEntity<byte[]> export(@RequestParam(required = false) Long departmentId,
+                                         @RequestParam LocalDate from,
+                                         @RequestParam LocalDate to) {
         String filename = buildFilename(departmentId, from, to);
-        StreamingResponseBody stream = out -> {
-            try {
-                exportService.exportHrReport(out, departmentId, from, to);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        };
-        MediaType xlsx = MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        return ResponseEntity.ok()
-                .contentType(xlsx)
-                .header("Content-Disposition", contentDisposition(filename))
-                .body(stream);
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream(16 * 1024);
+            exportService.exportHrReport(baos, departmentId, from, to);
+            byte[] data = baos.toByteArray();
+            MediaType xlsx = MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            return ResponseEntity.ok()
+                    .contentType(xlsx)
+                    .header("Content-Disposition", contentDisposition(filename))
+                    .contentLength(data.length)
+                    .body(data);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static String buildFilename(Long departmentId, LocalDate from, LocalDate to) {
@@ -56,4 +58,3 @@ public class ExportController {
         return "attachment; filename=" + encoded + "; filename*=UTF-8''" + encoded;
     }
 }
-

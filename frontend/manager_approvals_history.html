@@ -13,8 +13,8 @@
   <div class="content-wrapper">
     <section class="content-header">
       <div class="container">
-        <h1>已处理审批</h1>
-        <p class="u-text-muted">查看本人已审批通过/拒绝的历史记录</p>
+        <h1>Approval History</h1>
+        <p class="u-text-muted">View your previously approved or rejected requests</p>
       </div>
     </section>
     <section class="content">
@@ -26,14 +26,14 @@
                 <thead>
                   <tr>
                     <th>ID</th>
-                    <th>员工</th>
-                    <th>类型</th>
-                    <th>开始</th>
-                    <th>结束</th>
-                    <th>天数</th>
-                    <th>状态</th>
-                    <th>备注</th>
-                    <th>更新时间</th>
+                    <th>Employee</th>
+                    <th>Type</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Days</th>
+                    <th>Status</th>
+                    <th>Approval Comment</th>
+                    <th>Updated At</th>
                   </tr>
                 </thead>
                 <tbody id="listBody"></tbody>
@@ -62,8 +62,8 @@
 <script>
   let page=0, size=10, totalPages=1;
   function statusBadge(s){ var map={ APPROVED:'success', REJECTED:'danger' }; var cls=map[s]||'secondary'; return '<span class="badge badge-'+cls+'">'+(s||'-')+'</span>'; }
-  function render(items){ var body=document.getElementById('listBody'); body.innerHTML=''; var arr=items||[]; if(arr.length===0){ var tr=document.createElement('tr'); tr.innerHTML='<td colspan="9"><div class="u-text-muted">暂无历史记录</div></td>'; body.appendChild(tr); return; } arr.forEach(function(it){ var tr=document.createElement('tr'); tr.innerHTML='\n<td>'+it.id+'</td>\n<td>'+ (it.employeeId||'-') +'</td>\n<td>'+it.leaveType+'</td>\n<td>'+it.startDate+'</td>\n<td>'+it.endDate+'</td>\n<td>'+it.days+'</td>\n<td>'+statusBadge(it.status)+'</td>\n<td>'+(it.comment||'')+'</td>\n<td>'+ (it.updatedAt||'') +'</td>'; body.appendChild(tr); }); }
-  async function load(){ try{ var resp=await listManagerApprovalsHistory(page,size); if(resp && resp.code===0){ var pd=resp.data; render(pd.items); totalPages=pd.totalPages||1; document.getElementById('pageInfo').textContent='第 '+(pd.page+1)+' / '+pd.totalPages+' 页（共 '+pd.totalElements+' 条）'; document.getElementById('prevBtn').disabled=pd.page<=0; document.getElementById('nextBtn').disabled=pd.page+1>=totalPages; } else { showError(resp && resp.message ? resp.message : '加载失败') } } catch(e){ showError('加载失败：'+(e && e.message ? e.message : '未知错误')) } }
+  function render(items){ var body=document.getElementById('listBody'); body.innerHTML=''; var arr=items||[]; if(arr.length===0){ var tr=document.createElement('tr'); tr.innerHTML='<td colspan="9"><div class="u-text-muted">No history</div></td>'; body.appendChild(tr); return; } arr.forEach(function(it){ var tr=document.createElement('tr'); tr.innerHTML='\n<td>'+it.id+'</td>\n<td>'+ (it.employeeId||'-') +'</td>\n<td>'+it.leaveType+'</td>\n<td>'+it.startDate+'</td>\n<td>'+it.endDate+'</td>\n<td>'+it.days+'</td>\n<td>'+statusBadge(it.status)+'</td>\n<td>'+(it.approvalComment||'')+'</td>\n<td>'+ (it.updatedAt||'') +'</td>'; body.appendChild(tr); }); }
+  async function load(){ try{ var resp=await listManagerApprovalsHistory(page,size); if(resp && resp.code===0){ var pd=resp.data; render(pd.items); totalPages=pd.totalPages||1; document.getElementById('pageInfo').textContent='Page '+(pd.page+1)+' / '+pd.totalPages+' (Total '+pd.totalElements+')'; document.getElementById('prevBtn').disabled=pd.page<=0; document.getElementById('nextBtn').disabled=pd.page+1>=totalPages; } else { showError(resp && resp.message ? resp.message : 'Load failed') } } catch(e){ showError('Load failed: '+(e && e.message ? e.message : 'Unknown error')) } }
   document.getElementById('prevBtn').addEventListener('click', function(){ if(page>0){ page--; load() } });
   document.getElementById('nextBtn').addEventListener('click', function(){ if(page+1<totalPages){ page++; load() } });
   (function ensureLogin(){ if(!getToken()){ showError('请先登录'); window.location.href='/login.html' } })();

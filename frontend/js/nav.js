@@ -2,12 +2,12 @@ function buildNav(profile){
   var role = profile && profile.role;
   var username = profile && profile.username;
   var links = ''+
-    '<li class="nav-item"><a class="nav-link" href="/dashboard.html" data-path="/dashboard.html">仪表盘</a></li>'+
-    (role==='EMPLOYEE' ? '<li class="nav-item"><a class="nav-link" href="/apply_leave.html" data-path="/apply_leave.html">提交请假</a></li>' : '')+
-    (role==='EMPLOYEE' ? '<li class="nav-item"><a class="nav-link" href="/employee_requests.html" data-path="/employee_requests.html">我的请假<span id="badgeMyTotal" class="badge badge-pill badge-secondary ml-1" style="display:none"></span><span id="badgeMyPendingDot" class="badge badge-pill badge-danger ml-1" style="display:none">●</span></a></li>' : '')+
-    (role==='MANAGER' ? '<li class="nav-item"><a class="nav-link" href="/pending_approvals.html" data-path="/pending_approvals.html">待审批<span id="badgePending" class="badge badge-pill badge-danger ml-1" style="display:none"></span></a></li>' : '')+
-    (role==='MANAGER' ? '<li class="nav-item"><a class="nav-link" href="/manager_approvals_history.html" data-path="/manager_approvals_history.html">已处理审批</a></li>' : '')+
-    (role==='HR' ? '<li class="nav-item"><a class="nav-link" href="/hr_report.html" data-path="/hr_report.html">HR 报表</a></li>' : '');
+    '<li class="nav-item"><a class="nav-link" href="/dashboard.html" data-path="/dashboard.html">Dashboard</a></li>'+
+    (role==='EMPLOYEE' ? '<li class="nav-item"><a class="nav-link" href="/apply_leave.html" data-path="/apply_leave.html">Submit Leave</a></li>' : '')+
+    (role==='EMPLOYEE' ? '<li class="nav-item"><a class="nav-link" href="/employee_requests.html" data-path="/employee_requests.html">My Leave<span id="badgeMyPendingCount" class="badge badge-pill badge-secondary ml-1" style="display:none"></span><span id="badgeMyPendingDot" class="badge badge-pill badge-danger ml-1" style="display:none">●</span></a></li>' : '')+
+    (role==='MANAGER' ? '<li class="nav-item"><a class="nav-link" href="/pending_approvals.html" data-path="/pending_approvals.html">Pending Approvals<span id="badgePending" class="badge badge-pill badge-danger ml-1" style="display:none"></span></a></li>' : '')+
+    (role==='MANAGER' ? '<li class="nav-item"><a class="nav-link" href="/manager_approvals_history.html" data-path="/manager_approvals_history.html">Approval History</a></li>' : '')+
+    (role==='HR' ? '<li class="nav-item"><a class="nav-link" href="/hr_report.html" data-path="/hr_report.html">HR Reports</a></li>' : '');
   var html = ''+
     '<div class="container">'+
       '<a class="navbar-brand" href="/dashboard.html">Leave System</a>'+
@@ -18,7 +18,7 @@ function buildNav(profile){
         '<ul class="navbar-nav mr-auto">'+ links +'</ul>'+
         '<ul class="navbar-nav ml-auto">'+
           (username ? '<li class="nav-item"><span class="nav-link u-text-muted">'+username+'</span></li>' : '')+
-          '<li class="nav-item"><a class="nav-link" href="/login.html">退出登录</a></li>'+
+          '<li class="nav-item"><a class="nav-link" href="/login.html">Sign out</a></li>'+
         '</ul>'+
       '</div>'+
     '</div>';
@@ -39,11 +39,15 @@ async function updateCounts(profile){
     }
     if(profile && profile.role==='EMPLOYEE'){
       var u = profile.username || '';
-      var r2 = await listEmployeeLeavesByUsername(u,0,10);
+      var r2 = await listEmployeeLeavesByUsername(u,0,50);
       if(r2 && r2.code===0){
-        var pd=r2.data||{}; var total=pd.totalElements||0; var items=pd.items||[]; var hasPending=false; for(var i=0;i<items.length;i++){ if(items[i].status==='PENDING'){ hasPending=true; break } }
-        var bt=document.getElementById('badgeMyTotal'); if(bt){ if(total>0){ bt.textContent=total; bt.style.display='inline-block' } else { bt.style.display='none' } }
-        var bd=document.getElementById('badgeMyPendingDot'); if(bd){ bd.style.display = hasPending ? 'inline-block' : 'none' }
+        var items=r2.data && r2.data.items ? r2.data.items : [];
+        var pendingCount=0; for(var i=0;i<items.length;i++){ if(items[i].status==='PENDING'){ pendingCount++ } }
+        var bc=document.getElementById('badgeMyPendingCount'); if(bc){ if(pendingCount>0){ bc.textContent=pendingCount; bc.style.display='inline-block' } else { bc.style.display='none' } }
+        try{
+          var key='LS_MY_PENDING_SEEN_'+u; var seen = window.localStorage.getItem(key)==='true';
+          var bd=document.getElementById('badgeMyPendingDot'); if(bd){ bd.style.display = (pendingCount>0 && !seen) ? 'inline-block' : 'none' }
+        }catch(_){ /* ignore */ }
       }
     }
   }catch(e){}

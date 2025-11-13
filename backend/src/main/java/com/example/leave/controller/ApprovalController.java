@@ -43,7 +43,7 @@ public class ApprovalController {
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(403, e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(500, "服务器错误"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(500, "Server error"));
         }
     }
 
@@ -62,7 +62,7 @@ public class ApprovalController {
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(403, e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(500, "服务器错误"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(500, "Server error"));
         }
     }
 
@@ -80,7 +80,7 @@ public class ApprovalController {
         try {
             User manager = userRepository.findByUsername(principal.getName()).orElseThrow();
             LeaveRequest saved = leaveService.approveLeave(id, body != null ? body.comment : null, manager);
-            return ResponseEntity.ok(ApiResponse.success("审批通过", toDTO(saved)));
+            return ResponseEntity.ok(ApiResponse.success("Approved", toDTO(saved)));
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(403, e.getMessage()));
         } catch (IllegalStateException e) {
@@ -88,7 +88,7 @@ public class ApprovalController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(400, e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(500, "服务器错误"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(500, "Server error"));
         }
     }
 
@@ -100,7 +100,7 @@ public class ApprovalController {
         try {
             User manager = userRepository.findByUsername(principal.getName()).orElseThrow();
             LeaveRequest saved = leaveService.rejectLeave(id, body != null ? body.comment : null, manager);
-            return ResponseEntity.ok(ApiResponse.success("审批拒绝", toDTO(saved)));
+            return ResponseEntity.ok(ApiResponse.success("Rejected", toDTO(saved)));
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(403, e.getMessage()));
         } catch (IllegalStateException e) {
@@ -108,7 +108,7 @@ public class ApprovalController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(400, e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(500, "服务器错误"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(500, "Server error"));
         }
     }
 
@@ -120,7 +120,8 @@ public class ApprovalController {
         dto.setStartDate(lr.getStartDate());
         dto.setEndDate(lr.getEndDate());
         dto.setDays(lr.getDays());
-        dto.setComment(lr.getApprovalComment());
+        dto.setEmployeeComment(lr.getEmployeeComment());
+        dto.setApprovalComment(lr.getApprovalComment());
         dto.setStatus(lr.getStatus());
         dto.setCreatedAt(lr.getCreatedAt());
         dto.setUpdatedAt(lr.getUpdatedAt());

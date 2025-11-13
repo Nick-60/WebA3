@@ -41,6 +41,7 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
             lr.days        AS days,
             lr.status      AS status,
             a.username     AS approver,
+            lr.employee_comment AS employeeComment,
             lr.approval_comment AS approvalComment
         FROM leave_requests lr
         JOIN users e ON e.id = lr.employee_id

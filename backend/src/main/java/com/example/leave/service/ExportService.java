@@ -38,7 +38,8 @@ public class ExportService {
             Row header = sheet.createRow(rowIdx++);
             String[] heads = new String[]{
                 "employee_id","employee_name","department","leave_type",
-                "start_date","end_date","days","status","approver","approval_comment"
+                "start_date","end_date","days","status","approver",
+                "employee_comment","approval_comment"
             };
             for (int i = 0; i < heads.length; i++) {
                 Cell c = header.createCell(i);
@@ -65,6 +66,7 @@ public class ExportService {
                     setString(row, col++, toString(r.getDays()));
                     setString(row, col++, safe(r.getStatus()));
                     setString(row, col++, safe(r.getApprover()));
+                    setString(row, col++, safe(r.getEmployeeComment()));
                     setString(row, col++, safe(r.getApprovalComment()));
                 }
                 if (rows.size() < pageSize) {
@@ -91,4 +93,3 @@ public class ExportService {
         return bd == null ? "" : bd.stripTrailingZeros().toPlainString();
     }
 }
-

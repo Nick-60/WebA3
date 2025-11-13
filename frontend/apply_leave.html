@@ -14,7 +14,7 @@
   <div class="content-wrapper">
     <section class="content-header">
       <div class="container-fluid">
-        <h1>提交请假</h1>
+        <h1>Submit Leave</h1>
       </div>
     </section>
     <section class="content">
@@ -25,26 +25,27 @@
               <div class="card-body">
                 <form id="leaveForm">
               <div class="form-group">
-                <label>请假类型</label>
+                <label>Leave Type</label>
                 <select id="leaveType" class="form-control" required>
-                  <option value="ANNUAL">年假</option>
-                  <option value="SICK">病假</option>
-                  <option value="CASUAL">事假</option>
+                  <option value="ANNUAL">Annual Leave</option>
+                  <option value="SICK">Sick Leave</option>
+                  <option value="UNPAID">Unpaid Leave</option>
+                  <option value="OTHER">Other</option>
                 </select>
               </div>
               <div class="form-group">
-                <label>开始日期</label>
-                <input type="date" id="startDate" class="form-control" required>
+                <label>Start Date</label>
+                <input type="date" id="startDate" class="form-control" required placeholder="YYYY-MM-DD">
               </div>
               <div class="form-group">
-                <label>结束日期</label>
-                <input type="date" id="endDate" class="form-control" required>
+                <label>End Date</label>
+                <input type="date" id="endDate" class="form-control" required placeholder="YYYY-MM-DD">
               </div>
               <div class="form-group">
-                <label>备注</label>
-                <textarea id="comment" class="form-control" rows="3" placeholder="可选"></textarea>
+                <label>Comment</label>
+                <textarea id="comment" class="form-control" rows="3" placeholder="optional"></textarea>
               </div>
-              <button type="submit" class="btn btn-primary" id="submitBtn">提交</button>
+              <button type="submit" class="btn btn-primary" id="submitBtn">Submit</button>
                 </form>
               </div>
             </div>
@@ -67,7 +68,7 @@
 <script>
   (function ensureLogin() {
     if (!getToken()) {
-      alert('请先登录');
+      showError('Please sign in first');
       window.location.href = '/login.html';
     }
   })();
@@ -86,14 +87,14 @@
       await withButtonLoading(btn, async () => {
         const resp = await createLeaveRequest(dto);
         if (resp && resp.code === 0) {
-          showSuccess('提交成功，单号：' + (resp.data && resp.data.id ? resp.data.id : ''));
+          showSuccess('Submitted successfully. ID: ' + (resp.data && resp.data.id ? resp.data.id : ''));
           setTimeout(function(){ window.location.href = '/dashboard.html' }, 800);
         } else {
-          showError(resp && resp.message ? resp.message : '提交失败');
+          showError(resp && resp.message ? resp.message : 'Submit failed');
         }
       });
     } catch (err) {
-      showError('提交失败：' + ((err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : err.message));
+      showError('Submit failed: ' + ((err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : err.message));
     }
   });
 </script>

@@ -13,8 +13,8 @@
   <div class="content-wrapper">
     <section class="content-header">
       <div class="container">
-        <h1>我的请假记录</h1>
-        <p class="u-text-muted">查看个人提交的请假与当前状态</p>
+        <h1>My Leave Requests</h1>
+        <p class="u-text-muted">View your submitted leave and current status</p>
       </div>
     </section>
     <section class="content">
@@ -26,13 +26,14 @@
                 <thead>
                   <tr>
                     <th>ID</th>
-                    <th>类型</th>
-                    <th>开始</th>
-                    <th>结束</th>
-                    <th>天数</th>
-                    <th>状态</th>
-                    <th>备注</th>
-                    <th>操作</th>
+                    <th>Type</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Days</th>
+                    <th>Status</th>
+                    <th>Employee Comment</th>
+                    <th>Approval Comment</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="listBody"></tbody>
@@ -68,21 +69,22 @@
   function render(items){
     var body=document.getElementById('listBody'); body.innerHTML='';
     var arr=items||[];
-    if(arr.length===0){ var tr=document.createElement('tr'); tr.innerHTML='<td colspan="7"><div class="u-text-muted">暂无记录</div></td>'; body.appendChild(tr); return; }
+    if(arr.length===0){ var tr=document.createElement('tr'); tr.innerHTML='<td colspan="9"><div class="u-text-muted">No records</div></td>'; body.appendChild(tr); return; }
     arr.forEach(function(it){
       var tr=document.createElement('tr');
-      var op = it.status==='PENDING' ? ('<button class="btn btn-warning btn-sm" data-action="cancel" data-id="'+it.id+'">撤销</button>') : '';
-      tr.innerHTML='\n        <td>'+it.id+'</td>\n        <td>'+it.leaveType+'</td>\n        <td>'+it.startDate+'</td>\n        <td>'+it.endDate+'</td>\n        <td>'+it.days+'</td>\n        <td>'+statusBadge(it.status)+'</td>\n        <td>'+(it.comment||'')+'</td>\n        <td>'+op+'</td>\n      ';
+      var op = it.status==='PENDING' ? ('<button class="btn btn-warning btn-sm" data-action="cancel" data-id="'+it.id+'">Cancel</button>') : '';
+      tr.innerHTML='\n        <td>'+it.id+'</td>\n        <td>'+it.leaveType+'</td>\n        <td>'+it.startDate+'</td>\n        <td>'+it.endDate+'</td>\n        <td>'+it.days+'</td>\n        <td>'+statusBadge(it.status)+'</td>\n        <td>'+(it.employeeComment||'')+'</td>\n        <td>'+(it.approvalComment||'')+'</td>\n        <td>'+op+'</td>\n      ';
       body.appendChild(tr);
     });
   }
   async function load(){
     try{
       var prof = await fetchProfile(); username = prof && prof.username ? prof.username : '';
+      try{ var key='LS_MY_PENDING_SEEN_'+username; window.localStorage.setItem(key,'true') }catch(_){}
       var resp = await listEmployeeLeavesByUsername(username, page, size);
       if(resp && resp.code===0){
         var pd=resp.data; render(pd.items); totalPages=pd.totalPages||1;
-        document.getElementById('pageInfo').textContent='第 '+(pd.page+1)+' / '+pd.totalPages+' 页（共 '+pd.totalElements+' 条）';
+        document.getElementById('pageInfo').textContent='Page '+(pd.page+1)+' / '+pd.totalPages+' (Total '+pd.totalElements+')';
         document.getElementById('prevBtn').disabled = pd.page<=0;
         document.getElementById('nextBtn').disabled = pd.page+1>=totalPages;
       }else{ showError(resp && resp.message ? resp.message : '加载失败') }

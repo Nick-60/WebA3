@@ -37,20 +37,20 @@ public class LeaveRequestController {
                                                                 Principal principal) {
         try {
             User current = userRepository.findByUsername(principal.getName())
-                    .orElseThrow(() -> new IllegalArgumentException("当前用户不存在"));
+                    .orElseThrow(() -> new IllegalArgumentException("Current user not found"));
 
             LeaveRequest saved = leaveService.createLeave(
                     current, body.getLeaveType(), body.getStartDate(), body.getEndDate(), body.getComment());
 
             LeaveRequestDTO dto = toDTO(saved);
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(ApiResponse.success("创建成功", dto));
+                    .body(ApiResponse.success("Created successfully", dto));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error(400, e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error(500, "服务器错误"));
+                    .body(ApiResponse.error(500, "Server error"));
         }
     }
 
@@ -62,13 +62,13 @@ public class LeaveRequestController {
                                                                         Principal principal) {
         try {
             User current = userRepository.findByUsername(principal.getName())
-                    .orElseThrow(() -> new IllegalArgumentException("当前用户不存在"));
+                    .orElseThrow(() -> new IllegalArgumentException("Current user not found"));
             // 简单授权：仅本人或 ADMIN 可查看
             if (!current.getUsername().equals(empId)) {
                 UserRole role = current.getRole();
                 if (role == null || role != UserRole.ADMIN) {
                     return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(ApiResponse.error(403, "无权查看他人请假记录"));
+                            .body(ApiResponse.error(403, "Not authorized to view another user's leave records"));
                 }
             }
 
@@ -82,7 +82,7 @@ public class LeaveRequestController {
                     .body(ApiResponse.error(400, e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error(500, "服务器错误"));
+                    .body(ApiResponse.error(500, "Server error"));
         }
     }
 
@@ -92,9 +92,9 @@ public class LeaveRequestController {
                                                                Principal principal) {
         try {
             User current = userRepository.findByUsername(principal.getName())
-                    .orElseThrow(() -> new IllegalArgumentException("当前用户不存在"));
+                    .orElseThrow(() -> new IllegalArgumentException("Current user not found"));
             LeaveRequest saved = leaveService.cancelLeave(id, current);
-            return ResponseEntity.ok(ApiResponse.success("撤销成功", toDTO(saved)));
+            return ResponseEntity.ok(ApiResponse.success("Cancelled successfully", toDTO(saved)));
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(ApiResponse.error(403, e.getMessage()));
@@ -106,7 +106,7 @@ public class LeaveRequestController {
                     .body(ApiResponse.error(400, e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error(500, "服务器错误"));
+                    .body(ApiResponse.error(500, "Server error"));
         }
     }
 
@@ -118,7 +118,8 @@ public class LeaveRequestController {
         dto.setStartDate(lr.getStartDate());
         dto.setEndDate(lr.getEndDate());
         dto.setDays(lr.getDays());
-        dto.setComment(lr.getApprovalComment());
+        dto.setEmployeeComment(lr.getEmployeeComment());
+        dto.setApprovalComment(lr.getApprovalComment());
         dto.setStatus(lr.getStatus());
         dto.setCreatedAt(lr.getCreatedAt());
         dto.setUpdatedAt(lr.getUpdatedAt());
