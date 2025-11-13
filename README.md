@@ -94,6 +94,44 @@ scripts/     # 辅助脚本（启动、工具、CI 本地验证）
 
 ## 在 VS Code 启动项目（详细指南）
 
+本项目开发推荐使用 Vite 作为前端开发服务器（多页面入口），Spring Boot 作为后端 API。
+
+### 前端（Vite，多页面入口）
+
+- 启动命令：`npm run dev`
+- 访问地址：`http://127.0.0.1:5173/login.html`
+- 说明：Vite 已将 `frontend` 设为根目录（`vite.config.js`），多页面 HTML 入口包括：
+  - `login.html`
+  - `dashboard.html`
+  - `apply_leave.html`
+  - `pending_approvals.html`
+  - `hr_report.html`
+- 预览构建产物：`npm run preview`
+
+### 后端（Spring Boot）
+
+- 启动命令：`npm run dev:backend` 或在 `backend` 目录运行 `mvn spring-boot:run`
+- 如使用本地 MySQL：设置 `DB_URL` / `DB_USER` / `DB_PASSWORD` 后运行上述命令
+- 验证接口：可通过前端页面登录后触发 API；或直接使用工具（如 curl/Postman）访问后端接口
+
+### VS Code 操作建议
+
+- 打开集成终端，分别运行前后端命令（前端：`npm run dev`，后端：`npm run dev:backend`）。
+- 建议安装 VS Code 扩展：ESLint（前端）、Java（Spring Boot工具）、EditorConfig。
+- 前端 JS 风格：semicolon optional（可省略分号），请保持一致风格。
+
+## 快速启动（命令汇总）
+
+- 前端开发：`npm run dev`
+- 前端构建：`npm run build:frontend`
+- 前端预览：`npm run preview`
+- 后端开发：`npm run dev:backend`
+
+## 备注
+
+- 若遇到端口占用，请调整 `vite.config.js` 的 `server.port` 或使用 `PORT` 环境变量启动后端。
+- 如需将根路径 `/` 跳转到登录页，可保留此前的 `index.html`；在本方案下推荐直接访问具体页面如 `/login.html`。
+
 ### 先决条件
 - 安装 VS Code、Java 21（Temurin 推荐）、Maven 3.9+、Docker（可选）
 - VS Code 插件：Extension Pack for Java（包含 Debugger for Java）、Spring Boot Tools（可选）、Live Server（前端预览）

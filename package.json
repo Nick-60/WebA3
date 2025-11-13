@@ -1,0 +1,14 @@
+{
+  "name": "leave-mgmt",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build:frontend": "vite build",
+    "preview": "vite preview",
+    "dev:backend": "mvn -f backend/pom.xml spring-boot:run"
+  },
+  "devDependencies": {
+    "vite": "^6.4.1"
+  }
+}
