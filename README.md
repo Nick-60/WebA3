@@ -177,6 +177,40 @@ scripts/     # 辅助脚本（启动、工具、CI 本地验证）
 - 这些账号仅用于本地/测试环境，请勿在生产环境保留默认口令
 - 生产部署前应删除或修改默认测试用户
 
+## 角色与权限
+
+项目内置 4 类角色（见 `db/migrations/V1__init.sql:19`）：`EMPLOYEE`、`MANAGER`、`HR`、`ADMIN`。
+
+- EMPLOYEE（员工）
+  - 职责：提交个人请假、查看进度、可在未审批前取消（如后续扩展）
+  - 前端页面：`frontend/apply_leave.html`、`frontend/dashboard.html`
+  - 权限范围：仅能创建并查看自身请假单；无审批权限
+  - 相关接口：`createLeaveRequest`（`frontend/js/auth.js:7`）、`fetchProfile`（`frontend/js/auth.js:6`）
+  - 页面参考：提交表单交互（`frontend/apply_leave.html:72–93`）
+
+- MANAGER（经理）
+  - 职责：审批所辖员工的请假（同意/拒绝），填写备注
+  - 前端页面：`frontend/pending_approvals.html`
+  - 权限范围：查看待审批列表、执行通过/拒绝操作
+  - 相关接口：`listPendingApprovals`（`frontend/js/auth.js:8`）、`approveLeave`（`frontend/js/auth.js:9`）、`rejectLeave`（`frontend/js/auth.js:10`）
+  - 页面参考：审批列表与操作（`frontend/pending_approvals.html:62–115`）
+
+- HR（人力资源）
+  - 职责：导出报表（按日期区间与部门），用于核算与合规
+  - 前端页面：`frontend/hr_report.html`
+  - 权限范围：访问与下载 HR 报表导出
+  - 相关接口：`exportHrReport`（`frontend/js/auth.js:11`）
+  - 页面参考：报表导出交互（`frontend/hr_report.html:75–93`）
+
+- ADMIN（管理员）
+  - 职责：系统配置与管理（用户、部门、策略等）
+  - 前端页面：当前未提供专属管理页面；作为后端预留角色以便后续扩展
+  - 权限范围：具备系统级全局权限（后续通过后端策略控制）
+
+说明：
+- 登录后由后端返回的 `profile.role` 控制前端可见入口（见 `frontend/dashboard.html:85–90`）
+- 角色与权限的强制校验由后端在接口层执行；前端仅做可见性与交互上的引导
+
 ### 常见问题
 - 8080 无法访问：`Test-NetConnection -ComputerName localhost -Port 8080`
 - PowerShell 中 `curl` 与 `Invoke-WebRequest` 别名冲突：使用 `curl.exe` 或显式 `Invoke-WebRequest -Uri ...`

@@ -8,10 +8,13 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body class="hold-transition sidebar-mini">
+<body class="hold-transition layout-top-nav">
 <div class="wrapper">
   <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-    <a class="navbar-brand" href="/dashboard.html">返回仪表盘</a>
+    <div class="container d-flex justify-content-between align-items-center">
+      <a class="navbar-brand" href="/dashboard.html">返回仪表盘</a>
+      <a class="nav-link" href="/login.html">退出登录</a>
+    </div>
   </nav>
   <div class="content-wrapper">
     <section class="content-header">
@@ -20,11 +23,11 @@
       </div>
     </section>
     <section class="content">
-      <main class="container-fluid">
+      <main class="container">
         <div class="card u-card u-card-elevated">
           <div class="card-body">
             <div class="table-responsive">
-            <table class="table table-bordered table-hover">
+            <table class="table table-bordered table-hover table-striped align-middle">
               <thead>
                 <tr>
                   <th>ID</th>
@@ -40,9 +43,9 @@
             </table>
             </div>
             <div class="u-mt-4">
-              <button class="btn btn-secondary" id="prevBtn">上一页</button>
+              <button class="btn btn-outline-secondary" id="prevBtn">上一页</button>
               <span id="pageInfo" class="mx-2">第 1 页</span>
-              <button class="btn btn-secondary" id="nextBtn">下一页</button>
+              <button class="btn btn-outline-secondary" id="nextBtn">下一页</button>
             </div>
           </div>
         </div>
@@ -61,6 +64,15 @@
 <script>
   let page = 0;
   const size = 10;
+  let totalPages = 1;
+  let pendingId = null;
+  let pendingAction = null;
+
+  function typeBadge(t){
+    var map={ ANNUAL:'info', SICK:'warning', UNPAID:'secondary', OTHER:'dark' };
+    var cls=map[t]||'primary';
+    return '<span class="badge badge-'+cls+'">'+(t||'-')+'</span>';
+  }
 
   function renderList(items) {
     const body = document.getElementById('listBody');
@@ -77,7 +89,7 @@
       tr.innerHTML = `
         <td>${item.id}</td>
         <td>${item.employeeUsername || item.employeeId || '-'}</td>
-        <td>${item.leaveType}</td>
+        <td>${typeBadge(item.leaveType)}</td>
         <td>${item.startDate}</td>
         <td>${item.endDate}</td>
         <td>${item.days || '-'}</td>
@@ -96,32 +108,26 @@
       if (resp && resp.code === 0) {
         const pd = resp.data;
         renderList(pd.items);
+        totalPages = pd.totalPages || 1;
         document.getElementById('pageInfo').textContent = `第 ${pd.page + 1} / ${pd.totalPages} 页（共 ${pd.totalElements} 条）`;
+        var prev=document.getElementById('prevBtn');
+        var next=document.getElementById('nextBtn');
+        prev.disabled = pd.page <= 0;
+        next.disabled = pd.page + 1 >= totalPages;
       } else {
-        alert(resp?.message || '加载失败');
+        showError(resp && resp.message ? resp.message : '加载失败');
       }
     } catch (err) {
-      alert('加载失败：' + (err?.response?.data?.message || err.message));
+      showError('加载失败：' + ((err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : err.message));
     }
   }
 
   document.addEventListener('click', async (e) => {
-    const target = e.target;
+    var target = e.target;
     if (target && target.dataset && target.dataset.action) {
-      const id = target.dataset.id;
-      const action = target.dataset.action;
-      const comment = prompt('审批备注（可留空）：') || '';
-      try {
-        const resp = action === 'approve' ? await approveLeave(id, comment) : await rejectLeave(id, comment);
-        if (resp && resp.code === 0) {
-          alert('操作成功');
-          loadData();
-        } else {
-          alert(resp?.message || '操作失败');
-        }
-      } catch (err) {
-        alert('操作失败：' + (err?.response?.data?.message || err.message));
-      }
+      pendingId = target.dataset.id;
+      pendingAction = target.dataset.action;
+      if (window.jQuery) { jQuery('#commentModal').modal('show'); }
     }
   });
 
@@ -129,17 +135,54 @@
     if (page > 0) { page--; loadData(); }
   });
   document.getElementById('nextBtn').addEventListener('click', () => {
-    page++; loadData();
+    if (page + 1 < totalPages) { page++; loadData(); }
   });
 
   (function ensureLogin() {
     if (!getToken()) {
-      alert('请先登录');
+      showError('请先登录');
       window.location.href = '/login.html';
     }
   })();
 
   loadData();
+</script>
+<div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">审批备注（可选）</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <input type="text" class="form-control" id="commentInput" placeholder="填写备注，可留空">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" id="confirmApprove">确认</button>
+      </div>
+    </div>
+  </div>
+  </div>
+<script>
+  document.getElementById('confirmApprove').addEventListener('click', async function(){
+    var btn=this;
+    var c=document.getElementById('commentInput').value || '';
+    try{
+      await withButtonLoading(btn, async function(){
+        var resp = pendingAction === 'approve' ? await approveLeave(pendingId, c) : await rejectLeave(pendingId, c);
+        if (resp && resp.code === 0) {
+          showSuccess('操作成功');
+          if (window.jQuery) { jQuery('#commentModal').modal('hide'); }
+          loadData();
+        } else {
+          showError(resp && resp.message ? resp.message : '操作失败');
+        }
+      });
+    }catch(err){
+      showError('操作失败：' + ((err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : err.message));
+    }
+  });
 </script>
 </body>
 </html>
