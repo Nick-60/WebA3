@@ -20,9 +20,10 @@
       </div>
     </section>
     <section class="content">
-      <div class="container-fluid">
-        <div class="card">
+      <main class="container-fluid">
+        <div class="card u-card u-card-elevated">
           <div class="card-body">
+            <div class="table-responsive">
             <table class="table table-bordered table-hover">
               <thead>
                 <tr>
@@ -37,14 +38,15 @@
               </thead>
               <tbody id="listBody"></tbody>
             </table>
-            <div class="mt-2">
+            </div>
+            <div class="u-mt-4">
               <button class="btn btn-secondary" id="prevBtn">上一页</button>
               <span id="pageInfo" class="mx-2">第 1 页</span>
               <button class="btn btn-secondary" id="nextBtn">下一页</button>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </section>
   </div>
 </div>
@@ -63,7 +65,14 @@
   function renderList(items) {
     const body = document.getElementById('listBody');
     body.innerHTML = '';
-    (items || []).forEach(item => {
+    const arr = items || [];
+    if (arr.length === 0) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="7"><div class="u-text-muted">暂无待审批</div></td>`;
+      body.appendChild(tr);
+      return;
+    }
+    arr.forEach(item => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${item.id}</td>
@@ -134,4 +143,3 @@
 </script>
 </body>
 </html>
-

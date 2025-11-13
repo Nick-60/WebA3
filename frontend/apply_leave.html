@@ -21,7 +21,7 @@
     </section>
     <section class="content">
       <div class="container-fluid">
-        <div class="card">
+        <div class="card u-card u-card-elevated">
           <div class="card-body">
             <form id="leaveForm">
               <div class="form-group">
@@ -44,7 +44,7 @@
                 <label>备注</label>
                 <textarea id="comment" class="form-control" rows="3" placeholder="可选"></textarea>
               </div>
-              <button type="submit" class="btn btn-primary">提交</button>
+              <button type="submit" class="btn btn-primary" id="submitBtn">提交</button>
             </form>
           </div>
         </div>
@@ -78,19 +78,21 @@
       end_date: document.getElementById('endDate').value,
       comment: document.getElementById('comment').value.trim(),
     };
+    const btn = document.getElementById('submitBtn');
     try {
-      const resp = await createLeaveRequest(dto);
-      if (resp && resp.code === 0) {
-        alert('提交成功，单号：' + (resp.data?.id || ''));
-        setTimeout(() => window.location.href = '/dashboard.html', 800);
-      } else {
-        alert(resp?.message || '提交失败');
-      }
+      await withButtonLoading(btn, async () => {
+        const resp = await createLeaveRequest(dto);
+        if (resp && resp.code === 0) {
+          showSuccess('提交成功，单号：' + (resp.data && resp.data.id ? resp.data.id : ''));
+          setTimeout(function(){ window.location.href = '/dashboard.html' }, 800);
+        } else {
+          showError(resp && resp.message ? resp.message : '提交失败');
+        }
+      });
     } catch (err) {
-      alert('提交失败：' + (err?.response?.data?.message || err.message));
+      showError('提交失败：' + ((err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : err.message));
     }
   });
 </script>
 </body>
 </html>
-

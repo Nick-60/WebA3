@@ -31,23 +31,23 @@
     </section>
 
     <section class="content">
-      <div class="container-fluid">
+      <main class="container-fluid">
         <div class="row">
           <div class="col-md-6">
-            <div class="card">
+            <div class="card u-card u-card-elevated">
               <div class="card-header"><h3 class="card-title">快捷入口</h3></div>
               <div class="card-body">
                 <ul>
                   <li><a href="/apply_leave.html">提交请假（员工）</a></li>
-                  <li id="managerLink" style="display:none"><a href="/pending_approvals.html">待审批（经理）</a></li>
-                  <li id="hrLink" style="display:none"><a href="/hr_report.html">HR 报表导出（HR）</a></li>
+                  <li id="managerLink" class="u-hidden"><a href="/pending_approvals.html">待审批（经理）</a></li>
+                  <li id="hrLink" class="u-hidden"><a href="/hr_report.html">HR 报表导出（HR）</a></li>
                 </ul>
               </div>
             </div>
           </div>
 
           <div class="col-md-6">
-            <div class="card">
+            <div class="card u-card u-card-elevated">
               <div class="card-header"><h3 class="card-title">个人信息</h3></div>
               <div class="card-body">
                 <p>用户名：<span id="usernameText">-</span></p>
@@ -57,7 +57,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </section>
   </div>
 </div>
@@ -83,10 +83,10 @@
       document.getElementById('roleText').textContent = profile.role || '-';
       document.getElementById('deptText').textContent = profile.departmentId != null ? String(profile.departmentId) : '-';
       if (profile.role === 'MANAGER') {
-        document.getElementById('managerLink').style.display = 'list-item';
+        document.getElementById('managerLink').classList.remove('u-hidden');
       }
       if (profile.role === 'HR') {
-        document.getElementById('hrLink').style.display = 'list-item';
+        document.getElementById('hrLink').classList.remove('u-hidden');
       }
     } catch (err) {
       alert('加载个人信息失败');
@@ -95,4 +95,3 @@
 </script>
 </body>
 </html>
-
