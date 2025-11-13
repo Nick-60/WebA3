@@ -18,12 +18,20 @@
 
 ## 验收与测试步骤
 
-1. 打开 `login.html` -> 登录：员工账号（例如 `emp001`/`pass123`）
+1. 打开 `login.html` -> 登录：员工账号（`emp / emp123` 或 `emp001 / pass123`）
 2. 进入 `apply_leave.html` -> 提交请假
-3. 登录经理账号（例如 `mgr`/`mgr123`） -> 打开 `pending_approvals.html` -> 审批通过/拒绝
-4. 登录 HR 账号（例如 `hr`/`hr123`） -> 打开 `hr_report.html` -> 导出报表
+3. 登录经理账号（`mgr / mgr123`） -> 打开 `pending_approvals.html` -> 审批通过/拒绝
+4. 登录 HR 账号（`hr / hr123`） -> 打开 `hr_report.html` -> 导出报表
 
-> 注：若使用数据库初始化脚本，默认种子用户可能为 `emp`/`emp123`、`mgr`/`mgr123`、`hr`/`hr123`。`DataInitializer` 也会创建 `emp001`/`pass123`。请以实际环境为准。
+### 测试账号（默认种子）
+
+- EMPLOYEE：`emp / emp123`（或 `emp001 / pass123`）
+- MANAGER：`mgr / mgr123`
+- HR：`hr / hr123`
+
+来源：
+- `db/migrations/V1__init.sql:85–93`（初始 SHA2 口令，应用启动后自动转换为 BCrypt）
+- `backend/src/main/java/com/example/leave/config/DataInitializer.java:21–50`（创建 `emp001 / pass123`，并处理密码格式转换）
 
 ## JS 代码风格
 
@@ -36,4 +44,3 @@
 - `login.html`、`dashboard.html`、`apply_leave.html`、`pending_approvals.html`、`hr_report.html`
 - `js/config.js`、`js/auth.js`、`js/ui.js`
 - `css/style.css`
-

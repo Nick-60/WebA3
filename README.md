@@ -159,6 +159,24 @@ scripts/     # 辅助脚本（启动、工具、CI 本地验证）
   - Bash：
     - `curl -s -X POST -H 'Content-Type: application/json' -d '{"username":"emp","password":"emp123"}' http://localhost:8080/api/auth/login`
 
+## 测试账号（默认种子）
+
+- `EMPLOYEE`：`emp / emp123`（或 `emp001 / pass123`）
+- `MANAGER`：`mgr / mgr123`
+- `HR`：`hr / hr123`
+
+来源：
+- 数据库迁移脚本：`db/migrations/V1__init.sql:85–93`
+- 应用数据初始化：`backend/src/main/java/com/example/leave/config/DataInitializer.java:21–50`
+
+使用说明：
+- 直接在前端 `login.html` 输入上述账户与密码即可登录
+- 命令行验证参考“基本验证”章节中的示例
+
+安全提示：
+- 这些账号仅用于本地/测试环境，请勿在生产环境保留默认口令
+- 生产部署前应删除或修改默认测试用户
+
 ### 常见问题
 - 8080 无法访问：`Test-NetConnection -ComputerName localhost -Port 8080`
 - PowerShell 中 `curl` 与 `Invoke-WebRequest` 别名冲突：使用 `curl.exe` 或显式 `Invoke-WebRequest -Uri ...`
