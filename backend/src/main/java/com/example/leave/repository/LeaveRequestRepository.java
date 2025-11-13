@@ -22,6 +22,10 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
                                                                        LeaveStatus status,
                                                                        Pageable pageable);
 
+    Page<LeaveRequest> findByApproverIdAndStatusInOrderByUpdatedAtDesc(Long approverId,
+                                                                        List<LeaveStatus> statuses,
+                                                                        Pageable pageable);
+
     /**
      * 导出报表用的分页查询（原生 SQL，联表获取员工、部门、审批人等字段）。
      * 使用 Pageable 生成 LIMIT/OFFSET，返回接口投影以便流式写入 Excel。

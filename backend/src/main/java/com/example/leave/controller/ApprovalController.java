@@ -47,6 +47,25 @@ public class ApprovalController {
         }
     }
 
+    @GetMapping("/approvals/history")
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<ApiResponse<PagedData<LeaveRequestDTO>>> history(@RequestParam(defaultValue = "0") int page,
+                                                                           @RequestParam(defaultValue = "10") int size,
+                                                                           Principal principal) {
+        try {
+            User manager = userRepository.findByUsername(principal.getName()).orElseThrow();
+            Page<LeaveRequest> result = leaveService.listHandledByManager(manager, page, size);
+            List<LeaveRequestDTO> items = result.getContent().stream()
+                    .map(this::toDTO).collect(Collectors.toList());
+            PagedData<LeaveRequestDTO> data = new PagedData<>(items, page, size, result.getTotalElements(), result.getTotalPages());
+            return ResponseEntity.ok(ApiResponse.success(data));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(403, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(500, "服务器错误"));
+        }
+    }
+
     public static class ApproveRejectRequest {
         public String comment;
         public String getComment() { return comment; }

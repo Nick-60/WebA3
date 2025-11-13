@@ -37,7 +37,9 @@
               <div class="card-body">
                 <ul>
                   <li><a href="/apply_leave.html">提交请假（员工）</a></li>
+                  <li><a href="/employee_requests.html">我的请假记录</a></li>
                   <li id="managerLink" class="u-hidden"><a href="/pending_approvals.html">待审批（经理）</a></li>
+                  <li id="managerHistoryLink" class="u-hidden"><a href="/manager_approvals_history.html">已处理审批（经理）</a></li>
                   <li id="hrLink" class="u-hidden"><a href="/hr_report.html">HR 报表导出（HR）</a></li>
                 </ul>
               </div>
@@ -85,6 +87,9 @@
       }
       if (profile.role === 'HR') {
         document.getElementById('hrLink').classList.remove('u-hidden');
+      }
+      if (profile.role === 'MANAGER') {
+        var h=document.getElementById('managerHistoryLink'); if(h) h.classList.remove('u-hidden');
       }
     } catch (err) {
       alert('加载个人信息失败');

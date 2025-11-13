@@ -9,4 +9,6 @@ async function listPendingApprovals(page=0,size=10){ const r=await api.get('/api
 async function approveLeave(id,comment=''){ const r=await api.patch(`/api/leave/${id}/approve`,{comment}); return r.data }
 async function rejectLeave(id,comment=''){ const r=await api.patch(`/api/leave/${id}/reject`,{comment}); return r.data }
 async function exportHrReport(params={}){ const c={ params, responseType:'blob' }; const r=await api.get('/api/leave/hr/export',c); return r.data }
-
+async function listEmployeeLeavesByUsername(username,page=0,size=10){ const r=await api.get(`/api/leave/employee/${encodeURIComponent(username)}`,{ params:{page,size} }); return r.data }
+async function listManagerApprovalsHistory(page=0,size=10){ const r=await api.get('/api/leave/approvals/history',{ params:{page,size} }); return r.data }
+async function cancelLeave(id){ const r=await api.patch(`/api/leave/${id}/cancel`); return r.data }

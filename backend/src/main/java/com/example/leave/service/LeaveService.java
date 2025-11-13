@@ -145,6 +145,16 @@ public class LeaveService {
                 subordinateIds, LeaveStatus.PENDING, PageRequest.of(page, size));
     }
 
+    public Page<LeaveRequest> listHandledByManager(User manager, int page, int size) {
+        if (manager.getRole() == null || manager.getRole() != UserRole.MANAGER) {
+            throw new SecurityException("仅经理可查看已处理审批历史");
+        }
+        Long managerId = Objects.requireNonNull(manager.getId(), "manager.id must not be null");
+        List<LeaveStatus> handled = Arrays.asList(LeaveStatus.APPROVED, LeaveStatus.REJECTED);
+        return leaveRequestRepository.findByApproverIdAndStatusInOrderByUpdatedAtDesc(
+                managerId, handled, PageRequest.of(page, size));
+    }
+
     private void ensureManagerPermission(Long employeeId, User manager) {
         if (manager.getRole() == null || manager.getRole() != UserRole.MANAGER) {
             throw new SecurityException("仅经理可审批");
