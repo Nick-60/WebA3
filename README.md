@@ -21,6 +21,18 @@
    - 生产（MySQL，prod Profile）：
      - 使用 Docker Compose：`docker compose up -d --build`
      - 或本地 MySQL：设置 `DB_URL/DB_USER/DB_PASSWORD` 后运行 `mvn spring-boot:run`
+
+## 前端预览（服务器重定向方案）
+
+- 在项目根目录启动内置静态服务器（根路径服务端重定向到 `/frontend/login.html`）：
+- 命令：`node server.js`（默认端口 `5173`，可通过 `PORT` 环境变量覆盖）
+- 访问：`http://127.0.0.1:5173/`
+
+说明：该方案不依赖第三方库，后续如需改为完整入口页或使用 Vite，可在此基础上演进。
+
+### 前端代码风格
+
+- JS：semicolon optional（可省略分号），请保持一致风格。
 3. 前端（静态页面）
    - 推荐在 VS Code 安装 Live Server 插件后，右键 `frontend/login.html` → `Open with Live Server`。
    - 或使用 Node：`npx http-server ./frontend -p 5173`（或 `npx serve ./frontend -p 5173`）。
