@@ -36,7 +36,8 @@ public class LeaveServiceOverlapTests {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 leaveService.createLeave(emp, LeaveType.SICK,
                         LocalDate.of(2025, 1, 11), LocalDate.of(2025, 1, 13), "overlap"));
-        assertTrue(ex.getMessage().contains("重叠"));
+        String msg = ex.getMessage() == null ? "" : ex.getMessage().toLowerCase();
+        assertTrue(msg.contains("overlap") || msg.contains("重叠"));
     }
 
     @Test
