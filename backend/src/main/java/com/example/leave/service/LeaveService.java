@@ -56,7 +56,7 @@ public class LeaveService {
                 .existsByEmployeeIdAndStatusInAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                         empId, activeStatuses, end, start);
         if (overlap) {
-            throw new IllegalArgumentException("请求的日期区间与已有请假记录重叠");
+            throw new IllegalArgumentException("Requested date range overlaps with existing leave records");
         }
 
         long daysCount = ChronoUnit.DAYS.between(start, end) + 1;
