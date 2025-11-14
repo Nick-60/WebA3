@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>正在跳转到登录页...</title>
+    <title>Redirecting to Sign In...</title>
     <!-- 立即跳转到前端登录页 -->
     <meta http-equiv="refresh" content="0; url=./frontend/login.html" />
     <link rel="canonical" href="./frontend/login.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script>
-      // JS 兜底：某些环境下禁止 meta refresh 时仍可跳转
+      
       (function () {
         try { window.location.replace('./frontend/login.html'); } catch (e) {
           window.location.href = './frontend/login.html';
@@ -17,7 +17,7 @@
     </script>
   </head>
   <body>
-    如果没有自动跳转，请点击
-    <a href="./frontend/login.html">登录页</a>。
+    If you are not redirected automatically, click 
+    <a href="./frontend/login.html">Sign In</a>.
   </body>
 </html>

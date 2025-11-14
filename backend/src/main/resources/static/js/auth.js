@@ -28,9 +28,9 @@ api.interceptors.response.use(
     const message = err?.response?.data?.message || err.message || 'Request error';
     // 401/403 -> notify and optionally redirect
     if (status === 401) {
-      showError('未认证，请重新登录。');
+      showError('Unauthorized. Please sign in again.');
     } else if (status === 403) {
-      showError('无权限执行该操作。');
+      showError('Forbidden. You do not have permission.');
     } else {
       showError(message);
     }
@@ -42,7 +42,7 @@ api.interceptors.response.use(
 async function login(username, password) {
   const res = await api.post('/api/auth/login', { username, password });
   const token = res?.data?.accessToken;
-  if (!token) throw new Error('登录响应缺少 accessToken');
+  if (!token) throw new Error('Login response missing accessToken');
   setToken(token);
   return res.data;
 }

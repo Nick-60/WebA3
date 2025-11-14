@@ -4,4 +4,10 @@ body { background-color: #f4f6f9; }
 .card { margin-top: 1rem; }
 .navbar-brand { font-weight: 600; }
 .table-actions button { margin-right: 6px; }
+.u-input-wrapper { position: relative; }
+.u-input-with-icon { padding-right: 2.25rem; }
+.u-input-icon-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: none; background: transparent; padding: 0; cursor: pointer; color: #6c757d; }
+.u-input-icon-btn:hover { color: #0d6efd; }
+.u-input-icon-btn:focus { outline: none; }
+.u-input-icon-btn svg { width: 18px; height: 18px; }
 

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>已处理审批 | Leave System</title>
+  <title>Approval History | Leave System</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
   <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -40,9 +40,9 @@
               </table>
             </div>
             <div class="u-mt-4">
-              <button class="btn btn-outline-secondary" id="prevBtn">上一页</button>
-              <span id="pageInfo" class="mx-2">第 1 页</span>
-              <button class="btn btn-outline-secondary" id="nextBtn">下一页</button>
+              <button class="btn btn-outline-secondary" id="prevBtn">Prev</button>
+              <span id="pageInfo" class="mx-2">Page 1</span>
+              <button class="btn btn-outline-secondary" id="nextBtn">Next</button>
             </div>
           </div>
         </div>
@@ -66,7 +66,7 @@
   async function load(){ try{ var resp=await listManagerApprovalsHistory(page,size); if(resp && resp.code===0){ var pd=resp.data; render(pd.items); totalPages=pd.totalPages||1; document.getElementById('pageInfo').textContent='Page '+(pd.page+1)+' / '+pd.totalPages+' (Total '+pd.totalElements+')'; document.getElementById('prevBtn').disabled=pd.page<=0; document.getElementById('nextBtn').disabled=pd.page+1>=totalPages; } else { showError(resp && resp.message ? resp.message : 'Load failed') } } catch(e){ showError('Load failed: '+(e && e.message ? e.message : 'Unknown error')) } }
   document.getElementById('prevBtn').addEventListener('click', function(){ if(page>0){ page--; load() } });
   document.getElementById('nextBtn').addEventListener('click', function(){ if(page+1<totalPages){ page++; load() } });
-  (function ensureLogin(){ if(!getToken()){ showError('请先登录'); window.location.href='/login.html' } })();
+  (function ensureLogin(){ if(!getToken()){ showError('Please sign in first'); window.location.href='/login.html' } })();
   load();
 </script>
 </body>

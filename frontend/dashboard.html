@@ -1,10 +1,10 @@
 <!-- 与 backend/src/main/resources/static/dashboard.html 相同，用于预览与同步 -->
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>仪表盘 | Leave System</title>
+  <title>Dashboard | Leave System</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
   <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -78,7 +78,7 @@
   (async function() {
     const token = getToken();
     if (!token) {
-      alert('请先登录');
+      alert('Please sign in first');
       window.location.href = '/login.html';
       return;
     }
@@ -106,7 +106,7 @@
         if(resp && resp.code===0){ var items=resp.data && resp.data.items ? resp.data.items : []; var pc=0; var hasP=false; for(var i=0;i<items.length;i++){ if(items[i].status==='PENDING'){ pc++; hasP=true } } var c=document.getElementById('dashMyPendingCount'); if(c){ if(pc>0){ c.textContent=pc; c.style.display='inline-block' } else { c.style.display='none' } } try{ var key='LS_MY_PENDING_SEEN_'+(profile.username||''); var seen = window.localStorage.getItem(key)==='true'; var d=document.getElementById('dashMyPendingDot'); if(d){ d.style.display = (pc>0 && !seen) ? 'inline-block' : 'none' } }catch(_){} }
       }catch(e){}
     } catch (err) {
-      alert('加载个人信息失败');
+      alert('Failed to load profile');
     }
   })();
 </script>

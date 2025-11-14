@@ -1,11 +1,12 @@
 <!-- 与 backend/src/main/resources/static/hr_report.html 相同，用于预览与同步 -->
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>HR 报表导出 | Leave System</title>
+  <title>HR Reports | Leave System</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body class="hold-transition layout-top-nav">
@@ -24,11 +25,21 @@
             <div class="form-row">
               <div class="form-group col-md-3">
                 <label>Start Date</label>
-                <input type="date" id="fromDate" class="form-control">
+                <div class="u-input-wrapper">
+                  <input type="text" id="fromDate" class="form-control u-input-with-icon" placeholder="YYYY-MM-DD" pattern="\d{4}-\d{2}-\d{2}" inputmode="numeric" autocomplete="off">
+                  <button type="button" id="fromDateIcon" class="u-input-icon-btn" aria-label="Open calendar">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1zm13 7H4v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9zM6 7h12V6a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v1z"></path></svg>
+                  </button>
+                </div>
               </div>
               <div class="form-group col-md-3">
                 <label>End Date</label>
-                <input type="date" id="toDate" class="form-control">
+                <div class="u-input-wrapper">
+                  <input type="text" id="toDate" class="form-control u-input-with-icon" placeholder="YYYY-MM-DD" pattern="\d{4}-\d{2}-\d{2}" inputmode="numeric" autocomplete="off">
+                  <button type="button" id="toDateIcon" class="u-input-icon-btn" aria-label="Open calendar">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1zm13 7H4v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9zM6 7h12V6a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v1z"></path></svg>
+                  </button>
+                </div>
               </div>
               <div class="form-group col-md-3">
                 <label>Department ID (optional)</label>
@@ -50,6 +61,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios@1.6.7/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js"></script>
 <script src="/js/ui.js"></script>
 <script src="/js/config.js"></script>
 <script src="/js/auth.js"></script>
@@ -62,11 +74,36 @@
     }
   })();
 
+  let fromPicker, toPicker;
+  function initPickers(){
+    if (!window.flatpickr) return;
+    const opts = { dateFormat: 'Y-m-d', locale: 'en', allowInput: true };
+    fromPicker = fromPicker || window.flatpickr('#fromDate', opts);
+    toPicker = toPicker || window.flatpickr('#toDate', opts);
+  }
+  initPickers();
+  var fromIcon = document.getElementById('fromDateIcon');
+  if (fromIcon) {
+    fromIcon.addEventListener('click', function(){
+      if (fromPicker && typeof fromPicker.open==='function') { fromPicker.open(); return }
+      if (window.flatpickr) { initPickers(); if (fromPicker && fromPicker.open) fromPicker.open(); else document.getElementById('fromDate').focus() }
+      else { document.getElementById('fromDate').focus() }
+    });
+  }
+  var toIcon = document.getElementById('toDateIcon');
+  if (toIcon) {
+    toIcon.addEventListener('click', function(){
+      if (toPicker && typeof toPicker.open==='function') { toPicker.open(); return }
+      if (window.flatpickr) { initPickers(); if (toPicker && toPicker.open) toPicker.open(); else document.getElementById('toDate').focus() }
+      else { document.getElementById('toDate').focus() }
+    });
+  }
+
   (async function ensureRole(){
     try{
       const p = await fetchProfile();
       if (!p || p.role !== 'HR') {
-        showError('仅 HR 角色可访问报表导出');
+        showError('Only HR role can access report export');
         setTimeout(function(){ window.location.href='/dashboard.html' }, 800);
       }
     }catch(e){ /* 已在拦截器提示 */ }
@@ -82,8 +119,11 @@
   }
 
   document.getElementById('exportBtn').addEventListener('click', async () => {
-    const from = document.getElementById('fromDate').value || defaultDateRange().from;
-    const to = document.getElementById('toDate').value || defaultDateRange().to;
+    const re = /^\d{4}-\d{2}-\d{2}$/;
+    const fromVal = document.getElementById('fromDate').value;
+    const toVal = document.getElementById('toDate').value;
+    const from = re.test(fromVal) ? fromVal : defaultDateRange().from;
+    const to = re.test(toVal) ? toVal : defaultDateRange().to;
     const departmentId = document.getElementById('departmentId').value;
     try {
       const btn = document.getElementById('exportBtn');

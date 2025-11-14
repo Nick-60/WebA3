@@ -1,11 +1,11 @@
 // Minimal UI helpers for alerts and loading
 
 function showSuccess(msg) {
-  alert(msg || '操作成功');
+  alert(msg || 'Operation succeeded');
 }
 
 function showError(msg) {
-  alert(msg || '发生错误');
+  alert(msg || 'An error occurred');
 }
 
 function setText(id, text) {

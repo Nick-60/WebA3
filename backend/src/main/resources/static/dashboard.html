@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>仪表盘 | Leave System</title>
+  <title>Dashboard | Leave System</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
   <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -11,10 +11,10 @@
 <div class="wrapper">
   <nav class="main-header navbar navbar-expand navbar-white navbar-light">
     <ul class="navbar-nav">
-      <li class="nav-item"><a class="nav-link" href="#" role="button">菜单</a></li>
+      <li class="nav-item"><a class="nav-link" href="#" role="button">Menu</a></li>
     </ul>
     <ul class="navbar-nav ml-auto">
-      <li class="nav-item"><a class="nav-link" href="/login.html">退出登录</a></li>
+      <li class="nav-item"><a class="nav-link" href="/login.html">Sign out</a></li>
     </ul>
   </nav>
 
@@ -23,7 +23,7 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1>仪表盘</h1>
+            <h1>Dashboard</h1>
           </div>
         </div>
       </div>
@@ -34,12 +34,12 @@
         <div class="row">
           <div class="col-md-6">
             <div class="card">
-              <div class="card-header"><h3 class="card-title">快捷入口</h3></div>
+              <div class="card-header"><h3 class="card-title">Quick Actions</h3></div>
               <div class="card-body">
                 <ul>
-                  <li><a href="/apply_leave.html">提交请假（员工）</a></li>
-                  <li id="managerLink" style="display:none"><a href="/pending_approvals.html">待审批（经理）</a></li>
-                  <li id="hrLink" style="display:none"><a href="/hr_report.html">HR 报表导出（HR）</a></li>
+                  <li><a href="/apply_leave.html">Submit Leave</a></li>
+                  <li id="managerLink" style="display:none"><a href="/pending_approvals.html">Pending Approvals</a></li>
+                  <li id="hrLink" style="display:none"><a href="/hr_report.html">HR Report Export</a></li>
                 </ul>
               </div>
             </div>
@@ -47,11 +47,11 @@
 
           <div class="col-md-6">
             <div class="card">
-              <div class="card-header"><h3 class="card-title">个人信息</h3></div>
+              <div class="card-header"><h3 class="card-title">Profile</h3></div>
               <div class="card-body">
-                <p>用户名：<span id="usernameText">-</span></p>
-                <p>角色：<span id="roleText">-</span></p>
-                <p>部门ID：<span id="deptText">-</span></p>
+                <p>Username: <span id="usernameText">-</span></p>
+                <p>Role: <span id="roleText">-</span></p>
+                <p>Department ID: <span id="deptText">-</span></p>
               </div>
             </div>
           </div>
@@ -72,7 +72,7 @@
   (async function() {
     const token = getToken();
     if (!token) {
-      showError('请先登录');
+      showError('Please sign in first');
       window.location.href = '/login.html';
       return;
     }
@@ -81,7 +81,7 @@
       setText('usernameText', profile.username || '-');
       setText('roleText', profile.role || '-');
       setText('deptText', profile.departmentId != null ? String(profile.departmentId) : '-');
-      // 控制菜单显示
+      
       if (profile.role === 'MANAGER') {
         document.getElementById('managerLink').style.display = 'list-item';
       }
@@ -89,7 +89,7 @@
         document.getElementById('hrLink').style.display = 'list-item';
       }
     } catch (err) {
-      showError('加载个人信息失败');
+      showError('Failed to load profile');
     }
   })();
 </script>

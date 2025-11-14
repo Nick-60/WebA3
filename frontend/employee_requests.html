@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>我的请假记录 | Leave System</title>
+  <title>My Leave Requests | Leave System</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
   <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -40,9 +40,9 @@
               </table>
             </div>
             <div class="u-mt-4">
-              <button class="btn btn-outline-secondary" id="prevBtn">上一页</button>
-              <span id="pageInfo" class="mx-2">第 1 页</span>
-              <button class="btn btn-outline-secondary" id="nextBtn">下一页</button>
+              <button class="btn btn-outline-secondary" id="prevBtn">Prev</button>
+              <span id="pageInfo" class="mx-2">Page 1</span>
+              <button class="btn btn-outline-secondary" id="nextBtn">Next</button>
             </div>
           </div>
         </div>
@@ -87,24 +87,24 @@
         document.getElementById('pageInfo').textContent='Page '+(pd.page+1)+' / '+pd.totalPages+' (Total '+pd.totalElements+')';
         document.getElementById('prevBtn').disabled = pd.page<=0;
         document.getElementById('nextBtn').disabled = pd.page+1>=totalPages;
-      }else{ showError(resp && resp.message ? resp.message : '加载失败') }
-    }catch(e){ showError('加载失败：'+(e && e.message ? e.message : '未知错误')) }
+      }else{ showError(resp && resp.message ? resp.message : 'Load failed') }
+    }catch(e){ showError('Load failed: '+(e && e.message ? e.message : 'Unknown error')) }
   }
   document.getElementById('prevBtn').addEventListener('click', function(){ if(page>0){ page--; load() } });
   document.getElementById('nextBtn').addEventListener('click', function(){ if(page+1<totalPages){ page++; load() } });
   document.addEventListener('click', async function(e){
     var t=e.target; if(t && t.dataset && t.dataset.action==='cancel'){
       var id=t.dataset.id; if(!id) return;
-      var ok=window.confirm('确认撤销该请假申请？'); if(!ok) return;
+      var ok=window.confirm('Confirm cancel this leave request?'); if(!ok) return;
       try{
         await withButtonLoading(t, async function(){
           var resp = await cancelLeave(id);
-          if(resp && resp.code===0){ showSuccess('撤销成功'); load() } else { showError(resp && resp.message ? resp.message : '撤销失败') }
+          if(resp && resp.code===0){ showSuccess('Cancelled successfully'); load() } else { showError(resp && resp.message ? resp.message : 'Cancel failed') }
         });
-      }catch(err){ showError('撤销失败：'+(err && err.message ? err.message : '未知错误')) }
+      }catch(err){ showError('Cancel failed: '+(err && err.message ? err.message : 'Unknown error')) }
     }
   });
-  (function ensureLogin(){ if(!getToken()){ showError('请先登录'); window.location.href='/login.html' } })();
+  (function ensureLogin(){ if(!getToken()){ showError('Please sign in first'); window.location.href='/login.html' } })();
   load();
 </script>
 </body>

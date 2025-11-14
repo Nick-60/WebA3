@@ -29,3 +29,10 @@ body { color: var(--color-text); }
 .btn.is-loading::after { content: ""; display: inline-block; width: 1rem; height: 1rem; border: 2px solid rgba(255,255,255,.6); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; margin-left: .5rem; vertical-align: text-bottom; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.u-input-wrapper { position: relative; }
+.u-input-with-icon { padding-right: 2.25rem; }
+.u-input-icon-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: none; background: transparent; padding: 0; cursor: pointer; color: var(--color-muted); }
+.u-input-icon-btn:hover { color: var(--color-primary); }
+.u-input-icon-btn:focus { outline: none; }
+.u-input-icon-btn svg { width: 18px; height: 18px; }
