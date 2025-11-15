@@ -2,45 +2,32 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: ["**"]
   pull_request:
-    branches: [main, develop]
+    branches: ["**"]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17 (Gradle cache)
-        if: ${{ hashFiles('backend/gradlew') != '' }}
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
-
-      - name: Build & Test with Gradle (backend)
-        if: ${{ hashFiles('backend/gradlew') != '' }}
-        run: |
-          chmod +x backend/gradlew
-          backend/gradlew build --stacktrace
-
-      - name: Set up JDK 17 (Maven cache)
-        if: ${{ hashFiles('backend/pom.xml') != '' }}
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
           cache: 'maven'
 
-      - name: Test with Maven (backend)
-        if: ${{ hashFiles('backend/pom.xml') != '' }}
-        run: |
-          mvn -B -f backend/pom.xml -q test
+      - name: Run tests
+        run: mvn -B -ntp -f backend/pom.xml test
 
-      - name: Skip build (no backend build files)
-        if: ${{ hashFiles('backend/gradlew') == '' && hashFiles('backend/pom.xml') == '' }}
-        run: echo "No backend build file found. Skipping Java build/test."
+      - name: Build artifact (skip tests)
+        run: mvn -B -ntp -f backend/pom.xml -DskipTests package
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/target/*.jar

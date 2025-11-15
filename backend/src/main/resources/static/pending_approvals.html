@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pending Approvals | Leave System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="hold-transition sidebar-mini">
+<div class="wrapper">
+  <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+    <a class="navbar-brand" href="/dashboard.html">Back to Dashboard</a>
+  </nav>
+  <div class="content-wrapper">
+    <section class="content-header">
+      <div class="container-fluid">
+        <h1>Pending Approvals</h1>
+      </div>
+    </section>
+    <section class="content">
+      <div class="container-fluid">
+        <div class="card">
+          <div class="card-body">
+            <table class="table table-bordered table-hover">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Employee</th>
+                  <th>Type</th>
+                  <th>Start</th>
+                  <th>End</th>
+                  <th>Days</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="listBody"></tbody>
+            </table>
+            <div class="mt-2">
+              <button class="btn btn-secondary" id="prevBtn">Prev</button>
+              <span id="pageInfo" class="mx-2">Page 1</span>
+              <button class="btn btn-secondary" id="nextBtn">Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.7/dist/axios.min.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/auth.js"></script>
+<script>
+  let page = 0;
+  const size = 10;
+
+  function renderList(items) {
+    const body = document.getElementById('listBody');
+    body.innerHTML = '';
+    (items || []).forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.id}</td>
+        <td>${item.employeeUsername || item.employeeId || '-'}</td>
+        <td>${item.leaveType}</td>
+        <td>${item.startDate}</td>
+        <td>${item.endDate}</td>
+        <td>${item.days || '-'}</td>
+        <td class="table-actions">
+          <button class="btn btn-success btn-sm" data-id="${item.id}" data-action="approve">Approve</button>
+          <button class="btn btn-danger btn-sm" data-id="${item.id}" data-action="reject">Reject</button>
+        </td>
+      `;
+      body.appendChild(tr);
+    });
+  }
+
+  async function loadData() {
+    try {
+      const resp = await listPendingApprovals(page, size);
+      if (resp && resp.code === 0) {
+        const pd = resp.data;
+        renderList(pd.items);
+        document.getElementById('pageInfo').textContent = `Page ${pd.page + 1} / ${pd.totalPages} (Total ${pd.totalElements})`;
+      } else {
+        showError(resp?.message || 'Load failed');
+      }
+    } catch (err) {
+      showError('Load failed: ' + (err?.response?.data?.message || err.message));
+    }
+  }
+
+  document.addEventListener('click', async (e) => {
+    const target = e.target;
+    if (target && target.dataset && target.dataset.action) {
+      const id = target.dataset.id;
+      const action = target.dataset.action;
+      const comment = prompt('Approval comment (optional):') || '';
+      try {
+        const resp = action === 'approve' ? await approveLeave(id, comment) : await rejectLeave(id, comment);
+        if (resp && resp.code === 0) {
+          showSuccess('Operation succeeded');
+          loadData();
+        } else {
+          showError(resp?.message || 'Operation failed');
+        }
+      } catch (err) {
+        showError('Operation failed: ' + (err?.response?.data?.message || err.message));
+      }
+    }
+  });
+
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    if (page > 0) { page--; loadData(); }
+  });
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    page++; loadData();
+  });
+
+  (function ensureLogin() {
+    if (!getToken()) {
+      showError('Please sign in first');
+      window.location.href = '/login.html';
+    }
+  })();
+
+  // initial load
+  loadData();
+</script>
+</body>
+</html>
+

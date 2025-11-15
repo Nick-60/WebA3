@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirecting to Sign In...</title>
+    <!-- 立即跳转到前端登录页 -->
+    <meta http-equiv="refresh" content="0; url=./frontend/login.html" />
+    <link rel="canonical" href="./frontend/login.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      
+      (function () {
+        try { window.location.replace('./frontend/login.html'); } catch (e) {
+          window.location.href = './frontend/login.html';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    If you are not redirected automatically, click 
+    <a href="./frontend/login.html">Sign In</a>.
+  </body>
+</html>
