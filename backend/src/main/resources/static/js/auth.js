@@ -90,3 +90,8 @@ async function exportHrReport(params = {}) {
   return res.data; // Blob (xlsx)
 }
 
+async function register(username, password, email) {
+  const res = await api.post('/api/auth/register', { username, password, email });
+  return res.data;
+}
+

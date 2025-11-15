@@ -12,3 +12,4 @@ async function exportHrReport(params={}){ const c={ params, responseType:'blob' 
 async function listEmployeeLeavesByUsername(username,page=0,size=10){ const r=await api.get(`/api/leave/employee/${encodeURIComponent(username)}`,{ params:{page,size} }); return r.data }
 async function listManagerApprovalsHistory(page=0,size=10){ const r=await api.get('/api/leave/approvals/history',{ params:{page,size} }); return r.data }
 async function cancelLeave(id){ const r=await api.patch(`/api/leave/${id}/cancel`); return r.data }
+async function register(username,password,email){ const r=await api.post('/api/auth/register',{username,password,email}); return r.data }

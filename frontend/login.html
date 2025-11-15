@@ -35,7 +35,8 @@
           </div>
         </div>
       </form>
-      <p class="mt-3 mb-1"><a href="/dashboard.html">Go to Dashboard</a></p>
+      <p class="mt-3 mb-1"><a href="/register.html">Register a new account</a></p>
+      <p class="mb-0"><a href="/dashboard.html">Go to Dashboard</a></p>
     </div>
   </div>
 </div>
@@ -47,21 +48,6 @@
 <script src="/js/ui.js"></script>
 <script src="/js/config.js"></script>
 <script src="/js/auth.js"></script>
-<script>
-  const form = document.getElementById('loginForm');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-    try {
-      const data = await login(username, password);
-      showSuccess('Signed in successfully');
-      try { await fetchProfile(); } catch (_) {}
-      window.location.href = '/dashboard.html';
-    } catch (err) {
-      showError('Sign in failed: ' + (err?.response?.data?.message || err.message));
-    }
-  });
-</script>
+<script src="/js/login.js"></script>
 </body>
 </html>
